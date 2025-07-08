@@ -2663,6 +2663,12 @@
         function scrollToArticle(articleId) {
             const article = document.getElementById(articleId);
             if (article) {
+                // Remove destaques anteriores
+                document.querySelectorAll('.article').forEach(a => {
+                    a.style.transform = 'scale(1)';
+                    a.style.boxShadow = '';
+                });
+                
                 // Fecha todos os artigos primeiro
                 document.querySelectorAll('.article-content').forEach(c => c.classList.remove('expanded'));
                 document.querySelectorAll('.read-more').forEach(b => b.textContent = 'Leia o artigo completo');
@@ -2671,13 +2677,20 @@
                 article.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 
                 // Destacar temporariamente o artigo
-                article.style.transform = 'scale(1.02)';
-                article.style.transition = 'transform 0.3s ease';
                 setTimeout(() => {
-                    article.style.transform = 'scale(1)';
-                }, 1000);
+                    article.style.transform = 'scale(1.02)';
+                    article.style.boxShadow = '0 25px 50px rgba(52, 152, 219, 0.3)';
+                    article.style.transition = 'all 0.5s ease';
+                    
+                    setTimeout(() => {
+                        article.style.transform = 'scale(1)';
+                        article.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.1)';
+                    }, 1500);
+                }, 500);
                 
-                showNotification(`📖 Navegando para: ${article.querySelector('h2').textContent}`);
+                const title = article.querySelector('h2').textContent;
+                const shortTitle = title.length > 40 ? title.substring(0, 37) + '...' : title;
+                showNotification(`📖 ${shortTitle}`);
             }
         }
         
