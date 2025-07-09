@@ -771,6 +771,172 @@
             left: 0;
         }
 
+        .preview-modal {
+            display: none;
+            position: fixed;
+            z-index: 1002;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .preview-modal-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 95%;
+            max-width: 1200px;
+            height: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            padding: 20px 30px;
+            border-bottom: 2px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .preview-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .preview-actions {
+            padding: 20px 30px;
+            border-top: 2px solid #eee;
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            background: #f8f9fa;
+            border-radius: 0 0 15px 15px;
+        }
+
+        .preview-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .preview-btn.approve {
+            background: #27ae60;
+            color: white;
+        }
+
+        .preview-btn.approve:hover {
+            background: #219a52;
+        }
+
+        .preview-btn.reject {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .preview-btn.reject:hover {
+            background: #c0392b;
+        }
+
+        .preview-btn.close {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .preview-btn.close:hover {
+            background: #7f8c8d;
+        }
+
+        .submission-pending {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #f39c12;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .submission-pending .submission-meta {
+            display: flex;
+            gap: 20px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 12px;
+        }
+
+        .submission-pending .submission-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .submission-pending .submission-actions button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .submission-pending .btn-preview {
+            background: #3498db;
+            color: white;
+        }
+
+        .submission-pending .btn-approve {
+            background: #27ae60;
+            color: white;
+        }
+
+        .submission-pending .btn-reject {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .submission-pending .btn-preview:hover {
+            background: #2980b9;
+        }
+
+        .submission-pending .btn-approve:hover {
+            background: #219a52;
+        }
+
+        .submission-pending .btn-reject:hover {
+            background: #c0392b;
+        }
+
+        .user-preview {
+            background: #e8f5e8;
+            border: 2px solid #27ae60;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .user-preview h4 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+
+        .user-preview .preview-actions {
+            background: transparent;
+            border: none;
+            padding: 15px 0 0 0;
+        }
+
         .moderator-mode {
             position: fixed;
             bottom: 30px;
@@ -2144,7 +2310,7 @@ Seu artigo aqui..."></textarea>
                     <h3>Boas-vindas</h3>
                     <p>Olá! Sou <strong>Bruno Francisco Prado Rocha</strong>, e é uma honra recebê-lo aqui.</p>
                     <div class="author-quote">
-                        "Quem aqui entra, faz-me uma honra; quem não entra, eu apenas contemplo para aprender um algo a mais, porque conhecimento não é luxo acadêmico, mas ferramenta de agência."
+                        "Quem aqui entra, faz-me uma honra com sua participação; quem não entra, eu apenas contemplo enquanto aguardo sua chegada, porque conhecimento não é luxo acadêmico, mas ferramenta de agência."
                     </div>
                 </div>
                 
@@ -2217,11 +2383,423 @@ Seu artigo aqui..."></textarea>
         </div>
     </div>
 
+    <!-- Modal de Preview -->
+    <div id="previewModal" class="preview-modal">
+        <div class="preview-modal-content">
+            <div class="preview-header">
+                <h3 id="preview-title">Preview do Artigo</h3>
+                <button class="preview-btn close" onclick="closePreviewModal()">✕ Fechar</button>
+            </div>
+            <div class="preview-content" id="preview-content">
+                <!-- Conteúdo do preview será inserido aqui -->
+            </div>
+            <div class="preview-actions" id="preview-actions">
+                <!-- Ações do preview serão inseridas aqui -->
+            </div>
+        </div>
+    </div>
+
     <script>
         // Estado global
         let likedArticles = new Set();
         let isFollowing = false;
         let isModeratorAuthenticated = false;
+        let pendingSubmissions = []; // Array para armazenar submissões pendentes
+        let submissionIdCounter = 1; // Contador para IDs únicas
+        
+        // Função para processar Markdown básico
+        function parseMarkdown(markdown) {
+            return markdown
+                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                .replace(/^## (.+)$/gm, '<h2 class="section-heading">$1</h2>')
+                .replace(/^### (.+)$/gm, '<h3 class="subsection-heading">$1</h3>')
+                .replace(/^\*\*(.+):\*\*\s*(.+)$/gm, '<div style="margin: 10px 0;"><strong>$1:</strong> $2</div>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/^> (.+)$/gm, '<blockquote style="border-left: 3px solid #3498db; padding-left: 15px; margin: 15px 0; color: #666;">$1</blockquote>')
+                .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
+                .replace(/^- (.+)$/gm, '<li>$1</li>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/^(.+)$/gm, '<p>$1</p>')
+                .replace(/<\/p><p><li>/g, '<ul><li>')
+                .replace(/<\/li><\/p>/g, '</li></ul>')
+                .replace(/<p><\/p>/g, '');
+        }
+        
+        // Função para extrair dados do markdown
+        function extractArticleData(markdown) {
+            const data = {
+                title: 'Artigo sem título',
+                category: 'Indefinida',
+                author: 'Autor anônimo',
+                readTime: '10 min',
+                summary: '',
+                content: markdown
+            };
+            
+            // Extrair título
+            const titleMatch = markdown.match(/^#\s+(.+)/m);
+            if (titleMatch) data.title = titleMatch[1];
+            
+            // Extrair categoria
+            const categoryMatch = markdown.match(/\*\*Categoria:\*\*\s*(.+)/);
+            if (categoryMatch) data.category = categoryMatch[1];
+            
+            // Extrair autor
+            const authorMatch = markdown.match(/\*\*Autor:\*\*\s*(.+)/);
+            if (authorMatch) data.author = authorMatch[1];
+            
+            // Extrair tempo de leitura
+            const timeMatch = markdown.match(/\*\*Tempo de leitura:\*\*\s*(.+)/);
+            if (timeMatch) data.readTime = timeMatch[1];
+            
+            // Extrair resumo
+            const resumoMatch = markdown.match(/##\s*Resumo\s*\n(.+?)(?=\n##|\n#|$)/s);
+            if (resumoMatch) data.summary = resumoMatch[1].trim();
+            
+            return data;
+        }
+        
+        // Função para mostrar preview
+        function showPreview(submissionId = null, isModeratorView = false) {
+            const modal = document.getElementById('previewModal');
+            const titleEl = document.getElementById('preview-title');
+            const contentEl = document.getElementById('preview-content');
+            const actionsEl = document.getElementById('preview-actions');
+            
+            let submission;
+            if (submissionId) {
+                submission = pendingSubmissions.find(s => s.id === submissionId);
+            } else {
+                // Preview do formulário atual
+                const markdown = document.getElementById('article-markdown').value.trim();
+                const category = document.getElementById('article-category').value;
+                submission = {
+                    id: 'preview',
+                    markdown: markdown,
+                    category: category,
+                    timestamp: new Date(),
+                    ...extractArticleData(markdown)
+                };
+            }
+            
+            if (!submission) return;
+            
+            titleEl.textContent = isModeratorView ? 
+                `Preview - ${submission.title}` : 
+                'Preview do seu Artigo';
+            
+            // Renderizar o artigo
+            const articleHtml = `
+                <article class="article" style="margin: 0; box-shadow: none;">
+                    <div class="article-meta">
+                        <span class="article-author">${submission.author}</span>
+                        <span class="article-category">${submission.category}</span>
+                        <span class="article-time">${submission.readTime}</span>
+                    </div>
+                    <h2>${submission.title}</h2>
+                    ${submission.summary ? `
+                        <div class="article-abstract">
+                            <h3>Resumo</h3>
+                            <p>${submission.summary}</p>
+                        </div>
+                    ` : ''}
+                    <div class="article-content expanded">
+                        ${parseMarkdown(submission.content)}
+                    </div>
+                </article>
+            `;
+            
+            contentEl.innerHTML = articleHtml;
+            
+            // Configurar ações
+            if (isModeratorView) {
+                actionsEl.innerHTML = `
+                    <button class="preview-btn approve" onclick="approveSubmission(${submission.id})">
+                        ✓ Aprovar e Publicar
+                    </button>
+                    <button class="preview-btn reject" onclick="rejectSubmission(${submission.id})">
+                        ✗ Rejeitar
+                    </button>
+                    <button class="preview-btn close" onclick="closePreviewModal()">
+                        Fechar
+                    </button>
+                `;
+            } else {
+                actionsEl.innerHTML = `
+                    <button class="preview-btn approve" onclick="confirmSubmission()">
+                        ✓ Confirmar e Submeter
+                    </button>
+                    <button class="preview-btn close" onclick="closePreviewModal()">
+                        ✗ Cancelar
+                    </button>
+                `;
+            }
+            
+            modal.style.display = 'block';
+        }
+        
+        // Função para fechar preview
+        function closePreviewModal() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+        
+        // Função para confirmar submissão após preview
+        function confirmSubmission() {
+            const markdown = document.getElementById('article-markdown').value.trim();
+            const category = document.getElementById('article-category').value;
+            const tags = document.getElementById('article-tags').value;
+            const notes = document.getElementById('submission-notes').value;
+            
+            const submission = {
+                id: submissionIdCounter++,
+                markdown: markdown,
+                category: category,
+                tags: tags,
+                notes: notes,
+                timestamp: new Date(),
+                status: 'pending',
+                ...extractArticleData(markdown)
+            };
+            
+            pendingSubmissions.push(submission);
+            
+            closePreviewModal();
+            document.getElementById('markdown-form').reset();
+            
+            showNotification('📝 Artigo submetido com sucesso! Aguardando moderação.');
+            
+            // Adicionar à lista da comunidade como "em análise"
+            setTimeout(() => {
+                addToCommunityList('article', {
+                    title: submission.title,
+                    author: submission.author,
+                    category: submission.category,
+                    summary: 'Artigo submetido - aguardando aprovação da moderação'
+                });
+            }, 1000);
+        }
+        
+        // Função para aprovar submissão
+        function approveSubmission(submissionId) {
+            const submission = pendingSubmissions.find(s => s.id === submissionId);
+            if (!submission) return;
+            
+            submission.status = 'approved';
+            
+            // Adicionar como artigo real ao blog
+            addApprovedArticle(submission);
+            
+            // Remover da lista de pendentes
+            pendingSubmissions = pendingSubmissions.filter(s => s.id !== submissionId);
+            
+            closePreviewModal();
+            refreshModeratorPanel();
+            showNotification(`✅ Artigo "${submission.title}" aprovado e publicado!`);
+        }
+        
+        // Função para rejeitar submissão
+        function rejectSubmission(submissionId) {
+            const submission = pendingSubmissions.find(s => s.id === submissionId);
+            if (!submission) return;
+            
+            if (confirm(`Tem certeza que deseja rejeitar o artigo "${submission.title}"?`)) {
+                submission.status = 'rejected';
+                pendingSubmissions = pendingSubmissions.filter(s => s.id !== submissionId);
+                
+                closePreviewModal();
+                refreshModeratorPanel();
+                showNotification(`❌ Artigo "${submission.title}" rejeitado.`);
+            }
+        }
+        
+        // Função para adicionar artigo aprovado ao blog
+        function addApprovedArticle(submission) {
+            const articleContainer = document.querySelector('.main-content');
+            const researchSubmission = document.querySelector('.research-submission');
+            
+            const newArticleId = `article${Date.now()}`;
+            const articleHtml = `
+                <article class="article" id="${newArticleId}" style="border-left: 4px solid #27ae60;">
+                    <div class="article-meta">
+                        <span class="article-author">${submission.author}</span>
+                        <span class="article-category" style="background: linear-gradient(45deg, #27ae60, #2ecc71);">${submission.category}</span>
+                        <span class="article-time">${submission.readTime}</span>
+                    </div>
+                    <h2>${submission.title}</h2>
+                    ${submission.summary ? `
+                        <div class="article-abstract">
+                            <h3>Resumo</h3>
+                            <p>${submission.summary}</p>
+                        </div>
+                    ` : ''}
+                    <p style="color: #27ae60; font-style: italic; margin-bottom: 15px;">
+                        📝 Artigo criado pela comunidade e aprovado pela moderação
+                    </p>
+                    <button class="read-more" onclick="toggleNewArticle('${newArticleId}')">Leia o artigo completo</button>
+                    <div class="article-content" id="content-${newArticleId}">
+                        ${parseMarkdown(submission.content)}
+                    </div>
+                    <div class="article-actions">
+                        <div class="social-buttons">
+                            <button class="social-btn like-btn" onclick="toggleLikeNew('${newArticleId}')">
+                                <span>❤️</span> <span id="like-count-${newArticleId}">0</span> Curtir
+                            </button>
+                            <button class="social-btn share-btn" onclick="shareNewArticle('${newArticleId}')">
+                                <span>🔗</span> Compartilhar
+                            </button>
+                            <button class="social-btn comment-btn" onclick="toggleCommentsNew('${newArticleId}')">
+                                <span>💬</span> <span id="comment-count-${newArticleId}">0</span> Comentários
+                            </button>
+                        </div>
+                        <div class="article-stats">
+                            <div class="stat-item">
+                                <span>👁️</span> <span id="view-count-${newArticleId}">1</span> visualizações
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comments-section" id="comments-${newArticleId}">
+                        <div class="comment-form">
+                            <textarea placeholder="Comente sobre este artigo da comunidade..."></textarea>
+                            <button onclick="addCommentNew('${newArticleId}')">Publicar Comentário</button>
+                        </div>
+                        <div class="no-comments" style="text-align: center; color: #7f8c8d; padding: 20px; font-style: italic;">
+                            Ainda não há comentários. Seja o primeiro a comentar!
+                        </div>
+                    </div>
+                </article>
+            `;
+            
+            articleContainer.insertBefore(
+                document.createRange().createContextualFragment(articleHtml),
+                researchSubmission
+            );
+        }
+        
+        // Funções para artigos dinâmicos
+        function toggleNewArticle(articleId) {
+            const content = document.getElementById(`content-${articleId}`);
+            const button = document.querySelector(`#${articleId} .read-more`);
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                button.textContent = 'Leia o artigo completo';
+            } else {
+                content.classList.add('expanded');
+                button.textContent = 'Ler menos';
+            }
+        }
+        
+        function toggleLikeNew(articleId) {
+            const likeBtn = document.querySelector(`#${articleId} .like-btn`);
+            const likeCount = document.getElementById(`like-count-${articleId}`);
+            
+            if (likeBtn.classList.contains('liked')) {
+                likeBtn.classList.remove('liked');
+                likeCount.textContent = Math.max(0, parseInt(likeCount.textContent) - 1);
+            } else {
+                likeBtn.classList.add('liked');
+                likeCount.textContent = parseInt(likeCount.textContent) + 1;
+            }
+        }
+        
+        function shareNewArticle(articleId) {
+            const articleTitle = document.querySelector(`#${articleId} h2`).textContent;
+            copyToClipboard(`${window.location.href}#${articleId}`);
+            showNotification(`🔗 Link do artigo "${articleTitle}" copiado!`);
+        }
+        
+        function toggleCommentsNew(articleId) {
+            const commentsSection = document.getElementById(`comments-${articleId}`);
+            
+            if (commentsSection.classList.contains('visible')) {
+                commentsSection.classList.remove('visible');
+            } else {
+                commentsSection.classList.add('visible');
+            }
+        }
+        
+        function addCommentNew(articleId) {
+            const textarea = document.querySelector(`#comments-${articleId} textarea`);
+            const commentText = textarea.value.trim();
+            
+            if (commentText) {
+                const commentsContainer = document.querySelector(`#comments-${articleId}`);
+                const noComments = commentsContainer.querySelector('.no-comments');
+                
+                if (noComments) noComments.remove();
+                
+                const newComment = document.createElement('div');
+                newComment.className = 'comment';
+                newComment.innerHTML = `
+                    <div class="comment-author">Visitante</div>
+                    <div class="comment-time">agora</div>
+                    <div class="comment-text">${commentText}</div>
+                `;
+                
+                const commentForm = commentsContainer.querySelector('.comment-form');
+                commentForm.insertAdjacentElement('afterend', newComment);
+                
+                textarea.value = '';
+                
+                const commentCount = document.getElementById(`comment-count-${articleId}`);
+                if (commentCount) {
+                    commentCount.textContent = parseInt(commentCount.textContent) + 1;
+                }
+                
+                showNotification('💬 Comentário publicado!');
+            }
+        }
+        
+        // Função para atualizar painel de moderação
+        function refreshModeratorPanel() {
+            if (!isModeratorAuthenticated) return;
+            
+            const moderatorContent = document.getElementById('moderator-content');
+            
+            if (pendingSubmissions.length === 0) {
+                moderatorContent.innerHTML = `
+                    <h3 style="color: #27ae60; margin-bottom: 15px;">✅ Acesso Autorizado</h3>
+                    <p style="margin-bottom: 20px;">Painel de moderação ativo.</p>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center;">
+                        <h4 style="color: #666; margin-bottom: 10px;">📝 Submissões Pendentes</h4>
+                        <p style="color: #999;">Nenhuma submissão pendente no momento.</p>
+                    </div>
+                `;
+            } else {
+                let submissionsHtml = `
+                    <h3 style="color: #27ae60; margin-bottom: 15px;">✅ Acesso Autorizado</h3>
+                    <p style="margin-bottom: 20px;">Submissões aguardando revisão:</p>
+                `;
+                
+                pendingSubmissions.forEach(submission => {
+                    submissionsHtml += `
+                        <div class="submission-pending">
+                            <div class="submission-title">${submission.title}</div>
+                            <div class="submission-meta">
+                                <span>Por: ${submission.author}</span>
+                                <span>Categoria: ${submission.category}</span>
+                                <span>Submetido: ${new Date(submission.timestamp).toLocaleString('pt-BR')}</span>
+                            </div>
+                            <div class="submission-description">${submission.summary || 'Resumo não disponível'}</div>
+                            <div class="submission-actions">
+                                <button class="btn-preview" onclick="showPreview(${submission.id}, true)">
+                                    👁️ Preview
+                                </button>
+                                <button class="btn-approve" onclick="approveSubmission(${submission.id})">
+                                    ✅ Aprovar
+                                </button>
+                                <button class="btn-reject" onclick="rejectSubmission(${submission.id})">
+                                    ❌ Rejeitar
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                moderatorContent.innerHTML = submissionsHtml;
+            }
+        }
         
         // Função principal de toggle de likes
         function toggleLike(articleId) {
@@ -2655,15 +3233,7 @@ Seu artigo aqui..."></textarea>
             const password = document.getElementById('mod-password').value;
             if (password === '@Epis0305%$#@temoLogia') {
                 isModeratorAuthenticated = true;
-                document.getElementById('moderator-content').innerHTML = `
-                    <h3 style="color: #27ae60; margin-bottom: 15px;">✅ Acesso Autorizado</h3>
-                    <p style="margin-bottom: 20px;">Painel de moderação ativo. Aqui você pode revisar submissões da comunidade.</p>
-                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center;">
-                        <h4 style="color: #666; margin-bottom: 10px;">📝 Submissões Pendentes</h4>
-                        <p style="color: #999;">Nenhuma submissão pendente no momento.</p>
-                        <p style="color: #999; font-size: 0.9em; margin-top: 10px;">As submissões aparecerão aqui conforme forem enviadas pela comunidade.</p>
-                    </div>
-                `;
+                refreshModeratorPanel();
                 showNotification('🛡️ Modo moderador ativado');
             } else {
                 showNotification('❌ Senha incorreta');
@@ -2734,31 +3304,10 @@ Seu artigo aqui..."></textarea>
                     e.preventDefault();
                     
                     const markdown = document.getElementById('article-markdown').value.trim();
-                    const category = document.getElementById('article-category').value;
                     
                     if (markdown) {
-                        // Extrair título do markdown
-                        const titleMatch = markdown.match(/^#\s+(.+)/m);
-                        const title = titleMatch ? titleMatch[1] : 'Artigo sem título';
-                        
-                        // Extrair autor do markdown
-                        const authorMatch = markdown.match(/\*\*Autor:\*\*\s+(.+)/);
-                        const author = authorMatch ? authorMatch[1] : 'Autor anônimo';
-                        
-                        showNotification('📝 Artigo submetido! Aparecerá na comunidade após verificação.');
-                        
-                        const data = {
-                            title: title,
-                            author: author,
-                            category: category,
-                            summary: 'Artigo criado com assistência de IA em formato Markdown'
-                        };
-                        
-                        setTimeout(() => {
-                            addToCommunityList('article', data);
-                        }, 1000);
-                        
-                        this.reset();
+                        // Mostrar preview antes de submeter
+                        showPreview();
                     } else {
                         showNotification('⚠️ Por favor, cole o artigo em Markdown');
                     }
@@ -2799,11 +3348,16 @@ Seu artigo aqui..."></textarea>
             window.onclick = function(event) {
                 const createModal = document.getElementById('createModal');
                 const moderatorModal = document.getElementById('moderatorModal');
+                const previewModal = document.getElementById('previewModal');
+                
                 if (event.target == createModal) {
                     createModal.style.display = 'none';
                 }
                 if (event.target == moderatorModal) {
                     moderatorModal.style.display = 'none';
+                }
+                if (event.target == previewModal) {
+                    previewModal.style.display = 'none';
                 }
             }
         });
