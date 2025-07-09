@@ -817,35 +817,33 @@
             background: #a8a8a8;
         }
 
-        /* Garantir que o artigo no preview seja totalmente visível */
-        .preview-content .article {
-            margin: 0 !important;
-            padding: 0 !important;
-            box-shadow: none !important;
-            border: none !important;
-            background: white !important;
+        /* Remover estilos que podem estar interferindo no preview */
+        .preview-content * {
+            max-width: 100% !important;
+            box-sizing: border-box !important;
         }
 
-        .preview-content .article-content {
-            display: block !important;
-            margin-top: 20px !important;
-            opacity: 1 !important;
-            transform: none !important;
+        .preview-content .data-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            margin: 20px 0 !important;
+            background: #fff !important;
+            border-radius: 8px !important;
+            overflow: hidden !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
         }
 
-        .preview-content .section-heading {
-            color: #2c3e50 !important;
-            font-size: 1.6em !important;
-            margin: 25px 0 15px 0 !important;
-            padding-bottom: 10px !important;
-            border-bottom: 2px solid #3498db !important;
+        .preview-content .data-table th, 
+        .preview-content .data-table td {
+            padding: 12px 15px !important;
+            text-align: left !important;
+            border-bottom: 1px solid #eee !important;
         }
 
-        .preview-content .subsection-heading {
-            color: #34495e !important;
-            font-size: 1.3em !important;
-            margin: 20px 0 10px 0 !important;
+        .preview-content .data-table th {
+            background: #f8f9fa !important;
             font-weight: 600 !important;
+            color: #2c3e50 !important;
         }
 
         .preview-actions {
@@ -2468,8 +2466,14 @@ Seu artigo aqui..."></textarea>
         let pendingSubmissions = []; // Array para armazenar submissões pendentes
         let submissionIdCounter = 1; // Contador para IDs únicas
         
-        // Função para processar Markdown básico
+        // Função para processar Markdown básico - versão melhorada
         function parseMarkdown(markdown) {
+            if (!markdown || markdown.trim() === '') {
+                return '<p>Conteúdo não disponível</p>';
+            }
+            
+            console.log('Processando markdown, tamanho:', markdown.length); // Debug
+            
             let html = markdown;
             
             // Processar tabelas primeiro (antes de outros elementos)
@@ -2501,35 +2505,52 @@ Seu artigo aqui..."></textarea>
             
             // Processar outros elementos markdown
             html = html
-                .replace(/^# (.+)$/gm, '<h1 style="font-size: 2.2em; color: #2c3e50; margin: 30px 0 20px 0;">$1</h1>')
-                .replace(/^## (.+)$/gm, '<h2 class="section-heading" style="color: #2c3e50; font-size: 1.6em; margin: 25px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #3498db;">$1</h2>')
-                .replace(/^### (.+)$/gm, '<h3 class="subsection-heading" style="color: #34495e; font-size: 1.3em; margin: 20px 0 10px 0; font-weight: 600;">$1</h3>')
+                .replace(/^# (.+)$/gm, '<h1 style="font-size: 2.2em; color: #2c3e50; margin: 30px 0 20px 0; line-height: 1.3;">$1</h1>')
+                .replace(/^## (.+)$/gm, '<h2 style="color: #2c3e50; font-size: 1.6em; margin: 25px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #3498db;">$1</h2>')
+                .replace(/^### (.+)$/gm, '<h3 style="color: #34495e; font-size: 1.3em; margin: 20px 0 10px 0; font-weight: 600;">$1</h3>')
                 .replace(/^\*\*(.+):\*\*\s*(.+)$/gm, '<div style="margin: 10px 0;"><strong>$1:</strong> $2</div>')
                 .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\*(.+?)\*/g, '<em>$1</em>')
-                .replace(/^> (.+)$/gm, '<blockquote style="border-left: 3px solid #3498db; padding-left: 15px; margin: 15px 0; color: #666; background: #f8f9fa; padding: 15px; border-radius: 5px;">$1</blockquote>')
-                .replace(/^(\d+)\. (.+)$/gm, '<li style="margin-bottom: 8px;">$2</li>')
-                .replace(/^- (.+)$/gm, '<li style="margin-bottom: 8px;">$2</li>')
-                .split('\n\n').map(paragraph => {
-                    if (paragraph.includes('<li>')) {
-                        return '<ul style="margin: 15px 0; padding-left: 20px;">' + paragraph + '</ul>';
-                    } else if (paragraph.includes('<h') || paragraph.includes('<table') || paragraph.includes('<blockquote')) {
-                        return paragraph;
-                    } else if (paragraph.trim()) {
-                        return '<p style="margin: 15px 0; line-height: 1.6; text-align: justify;">' + paragraph + '</p>';
-                    }
-                    return '';
-                }).join('\n')
-                .replace(/<\/li><li/g, '</li><li')
-                .replace(/<\/ul>\n<ul/g, '')
-                .replace(/<p><table/g, '<table')
-                .replace(/<\/table><\/p>/g, '</table>')
-                .replace(/<p><h/g, '<h')
-                .replace(/<\/h(\d)><\/p>/g, '</h$1>')
-                .replace(/<p><blockquote/g, '<blockquote')
-                .replace(/<\/blockquote><\/p>/g, '</blockquote>');
+                .replace(/^> (.+)$/gm, '<blockquote style="border-left: 4px solid #3498db; padding: 15px 20px; margin: 20px 0; background: #f8f9fa; border-radius: 5px; color: #666;">$1</blockquote>');
             
-            return html;
+            // Processar listas e parágrafos de forma mais robusta
+            const paragraphs = html.split(/\n\s*\n/);
+            const processedParagraphs = paragraphs.map(para => {
+                const trimmed = para.trim();
+                if (!trimmed) return '';
+                
+                // Se já contém tags HTML (headings, blockquotes, etc), não processar
+                if (trimmed.match(/^<(h[1-6]|blockquote|table|div)/)) {
+                    return trimmed;
+                }
+                
+                // Processar listas
+                if (trimmed.match(/^(\d+\.\s|[-*]\s)/m)) {
+                    const lines = trimmed.split('\n');
+                    const listItems = lines.map(line => {
+                        if (line.match(/^\d+\.\s/)) {
+                            return '<li>' + line.replace(/^\d+\.\s/, '') + '</li>';
+                        } else if (line.match(/^[-*]\s/)) {
+                            return '<li>' + line.replace(/^[-*]\s/, '') + '</li>';
+                        }
+                        return line;
+                    }).join('');
+                    
+                    if (trimmed.match(/^\d+\./)) {
+                        return '<ol style="margin: 15px 0; padding-left: 25px; line-height: 1.6;">' + listItems + '</ol>';
+                    } else {
+                        return '<ul style="margin: 15px 0; padding-left: 25px; line-height: 1.6;">' + listItems + '</ul>';
+                    }
+                }
+                
+                // Parágrafos normais
+                return '<p style="margin: 15px 0; line-height: 1.6; text-align: justify; color: #333;">' + trimmed + '</p>';
+            });
+            
+            const result = processedParagraphs.join('\n');
+            console.log('Markdown processado, tamanho resultado:', result.length); // Debug
+            
+            return result;
         }
         
         // Função para extrair dados do markdown
@@ -2581,6 +2602,7 @@ Seu artigo aqui..."></textarea>
             let submission;
             if (submissionId) {
                 submission = pendingSubmissions.find(s => s.id === submissionId);
+                console.log('Submission encontrada:', submission); // Debug
             } else {
                 // Preview do formulário atual
                 const markdown = document.getElementById('article-markdown').value.trim();
@@ -2600,10 +2622,13 @@ Seu artigo aqui..."></textarea>
                 };
             }
             
-            if (!submission) return;
+            if (!submission) {
+                console.error('Submission não encontrada');
+                return;
+            }
             
             titleEl.textContent = isModeratorView ? 
-                `Preview - ${submission.title}` : 
+                `Preview Completo - ${submission.title}` : 
                 'Preview do seu Artigo';
             
             // Construir string de autores
@@ -2612,50 +2637,77 @@ Seu artigo aqui..."></textarea>
                 authorString += `, ${submission.additionalAuthors}`;
             }
             
-            // Renderizar o artigo COMPLETO
+            // RENDERIZAR O ARTIGO COMPLETO - usar submission.markdown, não content
+            const fullMarkdown = submission.markdown || submission.content || '';
+            console.log('Markdown a ser processado:', fullMarkdown.substring(0, 200) + '...'); // Debug
+            
             let articleHtml = `
-                <article class="article" style="margin: 0; box-shadow: none; max-width: none;">
-                    <div class="article-meta">
-                        <span class="article-author">${authorString}</span>
-                        <span class="article-category">${submission.category}</span>
-                        <span class="article-time">${submission.readTime}</span>
-                    </div>
-                    <h2>${submission.title}</h2>
-                    ${submission.summary ? `
-                        <div class="article-abstract">
-                            <h3>Resumo</h3>
-                            <p>${submission.summary}</p>
+                <div style="max-width: 100%; overflow-x: hidden;">
+                    <article style="background: white; padding: 0; margin: 0; border: none; box-shadow: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                            <span style="font-weight: 600; color: #3498db; font-size: 1.1em;">${authorString}</span>
+                            <span style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9em;">${submission.category}</span>
+                            <span style="color: #7f8c8d; font-size: 0.9em;">${submission.readTime}</span>
                         </div>
-                    ` : ''}
-                    <div class="article-content" style="display: block !important;">
-                        ${parseMarkdown(submission.markdown)}
-                    </div>
-                </article>
+                        
+                        <h1 style="font-size: 2.2em; color: #2c3e50; margin-bottom: 20px; line-height: 1.3;">${submission.title}</h1>
+                        
+                        ${submission.summary ? `
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 3px solid #3498db;">
+                                <h3 style="color: #2c3e50; margin-bottom: 10px; font-size: 1.1em;">Resumo</h3>
+                                <p style="margin: 0; line-height: 1.6;">${submission.summary}</p>
+                            </div>
+                        ` : ''}
+                        
+                        <div style="margin-top: 30px;">
+                            ${parseMarkdown(fullMarkdown)}
+                        </div>
+                    </article>
+                </div>
             `;
             
             // Se for moderador e houver notas, mostrar as notas DESTACADAS
             if (isModeratorView && submission.notes) {
                 articleHtml += `
-                    <div style="margin-top: 30px; padding: 25px; background: #fff3cd; border: 2px solid #ffeaa7; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                        <h4 style="color: #856404; margin-bottom: 15px; font-size: 1.2em;">📝 Notas do Autor sobre a Submissão</h4>
-                        <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #f39c12;">
-                            <p style="color: #333; margin: 0; font-size: 1.1em; line-height: 1.6;">${submission.notes}</p>
+                    <div style="margin-top: 40px; padding: 25px; background: #fff3cd; border: 3px solid #ffc107; border-radius: 12px; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);">
+                        <h3 style="color: #856404; margin-bottom: 15px; font-size: 1.3em; display: flex; align-items: center;">
+                            📝 <span style="margin-left: 10px;">Notas do Autor sobre a Submissão</span>
+                        </h3>
+                        <div style="background: white; padding: 20px; border-radius: 8px; border-left: 5px solid #f39c12; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                            <p style="color: #333; margin: 0; font-size: 1.1em; line-height: 1.7; font-style: italic;">"${submission.notes}"</p>
                         </div>
-                        <small style="color: #856404; font-style: italic; margin-top: 10px; display: block;">💡 Esta nota será incluída como primeiro comentário destacado se o artigo for aprovado.</small>
+                        <div style="margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.7); border-radius: 8px;">
+                            <strong style="color: #856404;">💡 Ação após aprovação:</strong>
+                            <p style="color: #856404; margin: 5px 0 0 0; font-size: 0.95em;">Esta nota será automaticamente incluída como o primeiro comentário do artigo, destacado em verde e identificado como "Nota do(s) Autor(es)".</p>
+                        </div>
                     </div>
                 `;
             }
             
-            // Se for moderador, adicionar informações extras
+            // Se for moderador, adicionar informações extras da submissão
             if (isModeratorView) {
                 articleHtml += `
-                    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 12px; border: 1px solid #dee2e6;">
-                        <h4 style="color: #495057; margin-bottom: 15px;">ℹ️ Informações da Submissão</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                            <div><strong>Data de Submissão:</strong><br>${new Date(submission.timestamp).toLocaleString('pt-BR')}</div>
-                            <div><strong>Categoria:</strong><br>${submission.category}</div>
-                            <div><strong>Tempo de Leitura:</strong><br>${submission.readTime}</div>
-                            ${submission.tags ? `<div><strong>Tags:</strong><br>${submission.tags}</div>` : ''}
+                    <div style="margin-top: 30px; padding: 25px; background: #e9ecef; border-radius: 12px; border: 1px solid #ced4da;">
+                        <h3 style="color: #495057; margin-bottom: 20px; font-size: 1.2em;">ℹ️ Informações da Submissão</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                            <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                <strong style="color: #6c757d;">📅 Data de Submissão:</strong><br>
+                                <span style="font-size: 1.1em;">${new Date(submission.timestamp).toLocaleString('pt-BR')}</span>
+                            </div>
+                            <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                <strong style="color: #6c757d;">📂 Categoria:</strong><br>
+                                <span style="font-size: 1.1em;">${submission.category}</span>
+                            </div>
+                            <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                <strong style="color: #6c757d;">⏱️ Tempo de Leitura:</strong><br>
+                                <span style="font-size: 1.1em;">${submission.readTime}</span>
+                            </div>
+                            ${submission.tags ? `
+                                <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                    <strong style="color: #6c757d;">🏷️ Tags:</strong><br>
+                                    <span style="font-size: 1.1em;">${submission.tags}</span>
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
@@ -2663,25 +2715,25 @@ Seu artigo aqui..."></textarea>
             
             contentEl.innerHTML = articleHtml;
             
-            // Configurar ações
+            // Configurar ações com textos mais claros
             if (isModeratorView) {
                 actionsEl.innerHTML = `
-                    <button class="preview-btn approve" onclick="approveSubmission(${submission.id})">
-                        ✓ Aprovar e Publicar
+                    <button class="preview-btn approve" onclick="approveSubmission(${submission.id})" style="background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        ✓ Aprovar e Publicar no Blog
                     </button>
-                    <button class="preview-btn reject" onclick="rejectSubmission(${submission.id})">
-                        ✗ Rejeitar
+                    <button class="preview-btn reject" onclick="rejectSubmission(${submission.id})" style="background: #dc3545; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        ✗ Rejeitar Submissão
                     </button>
-                    <button class="preview-btn close" onclick="closePreviewModal()">
+                    <button class="preview-btn close" onclick="closePreviewModal()" style="background: #6c757d; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
                         Fechar Preview
                     </button>
                 `;
             } else {
                 actionsEl.innerHTML = `
-                    <button class="preview-btn approve" onclick="confirmSubmission()">
+                    <button class="preview-btn approve" onclick="confirmSubmission()" style="background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
                         ✓ Confirmar e Submeter
                     </button>
-                    <button class="preview-btn close" onclick="closePreviewModal()">
+                    <button class="preview-btn close" onclick="closePreviewModal()" style="background: #6c757d; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
                         ✗ Cancelar
                     </button>
                 `;
@@ -2689,15 +2741,14 @@ Seu artigo aqui..."></textarea>
             
             modal.style.display = 'block';
             
-            // Garantir que o scroll funcione corretamente e resetar posição
+            // Garantir que o scroll funcione e vá para o topo
             setTimeout(() => {
                 const previewContent = document.querySelector('.preview-content');
                 if (previewContent) {
                     previewContent.scrollTop = 0;
-                    // Force reflow para garantir que o scroll está funcionando
-                    previewContent.style.overflowY = 'auto';
+                    console.log('Preview content height:', previewContent.scrollHeight); // Debug
                 }
-            }, 50);
+            }, 100);
         }
         
         // Função para fechar preview
@@ -2725,7 +2776,8 @@ Seu artigo aqui..."></textarea>
             const extractedData = extractArticleData(markdown);
             const submission = {
                 id: submissionIdCounter++,
-                markdown: markdown,
+                markdown: markdown, // Garantir que o markdown completo seja salvo
+                originalMarkdown: markdown, // Backup do markdown original
                 category: category,
                 tags: tags,
                 additionalAuthors: additionalAuthors || extractedData.additionalAuthors,
@@ -2735,6 +2787,7 @@ Seu artigo aqui..."></textarea>
                 ...extractedData
             };
             
+            console.log('Salvando submissão:', submission); // Debug
             pendingSubmissions.push(submission);
             
             closePreviewModal();
@@ -2992,6 +3045,9 @@ Seu artigo aqui..."></textarea>
                                 <button class="btn-reject" onclick="rejectSubmission(${submission.id})">
                                     ❌ Rejeitar
                                 </button>
+                                <button class="btn-preview" onclick="debugSubmission(${submission.id})" style="background: #17a2b8; color: white;">
+                                    🔍 Debug
+                                </button>
                             </div>
                         </div>
                     `;
@@ -2999,6 +3055,35 @@ Seu artigo aqui..."></textarea>
                 
                 moderatorContent.innerHTML = submissionsHtml;
             }
+        }
+        
+        // Função de debug para diagnosticar problemas
+        function debugSubmission(submissionId) {
+            const submission = pendingSubmissions.find(s => s.id === submissionId);
+            if (!submission) {
+                alert('Submissão não encontrada!');
+                return;
+            }
+            
+            console.log('=== DEBUG SUBMISSION ===');
+            console.log('ID:', submission.id);
+            console.log('Título:', submission.title);
+            console.log('Autor:', submission.author);
+            console.log('Markdown length:', submission.markdown ? submission.markdown.length : 'undefined');
+            console.log('Content length:', submission.content ? submission.content.length : 'undefined');
+            console.log('Markdown preview:', submission.markdown ? submission.markdown.substring(0, 500) + '...' : 'undefined');
+            console.log('Full submission object:', submission);
+            
+            // Mostrar informações na tela
+            alert(`DEBUG INFO:
+ID: ${submission.id}
+Título: ${submission.title}
+Autor: ${submission.author}
+Markdown Length: ${submission.markdown ? submission.markdown.length : 'undefined'}
+Content Length: ${submission.content ? submission.content.length : 'undefined'}
+Notas: ${submission.notes || 'nenhuma'}
+
+Veja o console para mais detalhes.`);
         }
         
         // Função principal de toggle de likes
