@@ -773,10 +773,11 @@
             border-radius: 15px;
             width: 95%;
             max-width: 1200px;
-            height: 90%;
+            max-height: 90vh;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .preview-header {
@@ -787,12 +788,64 @@
             align-items: center;
             background: #f8f9fa;
             border-radius: 15px 15px 0 0;
+            flex-shrink: 0;
         }
 
         .preview-content {
             flex: 1;
             overflow-y: auto;
             padding: 30px;
+            min-height: 0;
+            max-height: calc(90vh - 140px); /* Desconta header e footer */
+        }
+
+        .preview-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .preview-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .preview-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .preview-content::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Garantir que o artigo no preview seja totalmente visível */
+        .preview-content .article {
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: white !important;
+        }
+
+        .preview-content .article-content {
+            display: block !important;
+            margin-top: 20px !important;
+            opacity: 1 !important;
+            transform: none !important;
+        }
+
+        .preview-content .section-heading {
+            color: #2c3e50 !important;
+            font-size: 1.6em !important;
+            margin: 25px 0 15px 0 !important;
+            padding-bottom: 10px !important;
+            border-bottom: 2px solid #3498db !important;
+        }
+
+        .preview-content .subsection-heading {
+            color: #34495e !important;
+            font-size: 1.3em !important;
+            margin: 20px 0 10px 0 !important;
+            font-weight: 600 !important;
         }
 
         .preview-actions {
@@ -803,6 +856,7 @@
             justify-content: flex-end;
             background: #f8f9fa;
             border-radius: 0 0 15px 15px;
+            flex-shrink: 0;
         }
 
         .preview-btn {
@@ -2446,23 +2500,36 @@ Seu artigo aqui..."></textarea>
             });
             
             // Processar outros elementos markdown
-            return html
-                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-                .replace(/^## (.+)$/gm, '<h2 class="section-heading">$1</h2>')
-                .replace(/^### (.+)$/gm, '<h3 class="subsection-heading">$1</h3>')
+            html = html
+                .replace(/^# (.+)$/gm, '<h1 style="font-size: 2.2em; color: #2c3e50; margin: 30px 0 20px 0;">$1</h1>')
+                .replace(/^## (.+)$/gm, '<h2 class="section-heading" style="color: #2c3e50; font-size: 1.6em; margin: 25px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #3498db;">$1</h2>')
+                .replace(/^### (.+)$/gm, '<h3 class="subsection-heading" style="color: #34495e; font-size: 1.3em; margin: 20px 0 10px 0; font-weight: 600;">$1</h3>')
                 .replace(/^\*\*(.+):\*\*\s*(.+)$/gm, '<div style="margin: 10px 0;"><strong>$1:</strong> $2</div>')
                 .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\*(.+?)\*/g, '<em>$1</em>')
-                .replace(/^> (.+)$/gm, '<blockquote style="border-left: 3px solid #3498db; padding-left: 15px; margin: 15px 0; color: #666;">$1</blockquote>')
-                .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
-                .replace(/^- (.+)$/gm, '<li>$1</li>')
-                .replace(/\n\n/g, '</p><p>')
-                .replace(/^(.+)$/gm, '<p>$1</p>')
-                .replace(/<\/p><p><li>/g, '<ul><li>')
-                .replace(/<\/li><\/p>/g, '</li></ul>')
-                .replace(/<p><\/p>/g, '')
+                .replace(/^> (.+)$/gm, '<blockquote style="border-left: 3px solid #3498db; padding-left: 15px; margin: 15px 0; color: #666; background: #f8f9fa; padding: 15px; border-radius: 5px;">$1</blockquote>')
+                .replace(/^(\d+)\. (.+)$/gm, '<li style="margin-bottom: 8px;">$2</li>')
+                .replace(/^- (.+)$/gm, '<li style="margin-bottom: 8px;">$2</li>')
+                .split('\n\n').map(paragraph => {
+                    if (paragraph.includes('<li>')) {
+                        return '<ul style="margin: 15px 0; padding-left: 20px;">' + paragraph + '</ul>';
+                    } else if (paragraph.includes('<h') || paragraph.includes('<table') || paragraph.includes('<blockquote')) {
+                        return paragraph;
+                    } else if (paragraph.trim()) {
+                        return '<p style="margin: 15px 0; line-height: 1.6; text-align: justify;">' + paragraph + '</p>';
+                    }
+                    return '';
+                }).join('\n')
+                .replace(/<\/li><li/g, '</li><li')
+                .replace(/<\/ul>\n<ul/g, '')
                 .replace(/<p><table/g, '<table')
-                .replace(/<\/table><\/p>/g, '</table>');
+                .replace(/<\/table><\/p>/g, '</table>')
+                .replace(/<p><h/g, '<h')
+                .replace(/<\/h(\d)><\/p>/g, '</h$1>')
+                .replace(/<p><blockquote/g, '<blockquote')
+                .replace(/<\/blockquote><\/p>/g, '</blockquote>');
+            
+            return html;
         }
         
         // Função para extrair dados do markdown
@@ -2545,9 +2612,9 @@ Seu artigo aqui..."></textarea>
                 authorString += `, ${submission.additionalAuthors}`;
             }
             
-            // Renderizar o artigo
+            // Renderizar o artigo COMPLETO
             let articleHtml = `
-                <article class="article" style="margin: 0; box-shadow: none;">
+                <article class="article" style="margin: 0; box-shadow: none; max-width: none;">
                     <div class="article-meta">
                         <span class="article-author">${authorString}</span>
                         <span class="article-category">${submission.category}</span>
@@ -2560,19 +2627,36 @@ Seu artigo aqui..."></textarea>
                             <p>${submission.summary}</p>
                         </div>
                     ` : ''}
-                    <div class="article-content expanded">
-                        ${parseMarkdown(submission.content)}
+                    <div class="article-content" style="display: block !important;">
+                        ${parseMarkdown(submission.markdown)}
                     </div>
                 </article>
             `;
             
-            // Se for moderador e houver notas, mostrar as notas
+            // Se for moderador e houver notas, mostrar as notas DESTACADAS
             if (isModeratorView && submission.notes) {
                 articleHtml += `
-                    <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px;">
-                        <h4 style="color: #856404; margin-bottom: 10px;">📝 Notas do Autor sobre a Submissão</h4>
-                        <p style="color: #856404; margin: 0;">${submission.notes}</p>
-                        <small style="color: #856404; font-style: italic;">Esta nota será incluída como primeiro comentário se o artigo for aprovado.</small>
+                    <div style="margin-top: 30px; padding: 25px; background: #fff3cd; border: 2px solid #ffeaa7; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                        <h4 style="color: #856404; margin-bottom: 15px; font-size: 1.2em;">📝 Notas do Autor sobre a Submissão</h4>
+                        <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #f39c12;">
+                            <p style="color: #333; margin: 0; font-size: 1.1em; line-height: 1.6;">${submission.notes}</p>
+                        </div>
+                        <small style="color: #856404; font-style: italic; margin-top: 10px; display: block;">💡 Esta nota será incluída como primeiro comentário destacado se o artigo for aprovado.</small>
+                    </div>
+                `;
+            }
+            
+            // Se for moderador, adicionar informações extras
+            if (isModeratorView) {
+                articleHtml += `
+                    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 12px; border: 1px solid #dee2e6;">
+                        <h4 style="color: #495057; margin-bottom: 15px;">ℹ️ Informações da Submissão</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div><strong>Data de Submissão:</strong><br>${new Date(submission.timestamp).toLocaleString('pt-BR')}</div>
+                            <div><strong>Categoria:</strong><br>${submission.category}</div>
+                            <div><strong>Tempo de Leitura:</strong><br>${submission.readTime}</div>
+                            ${submission.tags ? `<div><strong>Tags:</strong><br>${submission.tags}</div>` : ''}
+                        </div>
                     </div>
                 `;
             }
@@ -2589,7 +2673,7 @@ Seu artigo aqui..."></textarea>
                         ✗ Rejeitar
                     </button>
                     <button class="preview-btn close" onclick="closePreviewModal()">
-                        Fechar
+                        Fechar Preview
                     </button>
                 `;
             } else {
@@ -2604,11 +2688,30 @@ Seu artigo aqui..."></textarea>
             }
             
             modal.style.display = 'block';
+            
+            // Garantir que o scroll funcione corretamente e resetar posição
+            setTimeout(() => {
+                const previewContent = document.querySelector('.preview-content');
+                if (previewContent) {
+                    previewContent.scrollTop = 0;
+                    // Force reflow para garantir que o scroll está funcionando
+                    previewContent.style.overflowY = 'auto';
+                }
+            }, 50);
         }
         
         // Função para fechar preview
         function closePreviewModal() {
-            document.getElementById('previewModal').style.display = 'none';
+            const modal = document.getElementById('previewModal');
+            modal.style.display = 'none';
+            
+            // Limpar conteúdo para evitar problemas de performance
+            setTimeout(() => {
+                const contentEl = document.getElementById('preview-content');
+                if (contentEl) {
+                    contentEl.innerHTML = '';
+                }
+            }, 300);
         }
         
         // Função para confirmar submissão após preview
@@ -2878,10 +2981,10 @@ Seu artigo aqui..."></textarea>
                                 <span>Submetido: ${new Date(submission.timestamp).toLocaleString('pt-BR')}</span>
                             </div>
                             <div class="submission-description">${submission.summary || 'Resumo não disponível'}</div>
-                            ${submission.notes ? `<div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0; font-style: italic;"><strong>Notas do autor:</strong> ${submission.notes}</div>` : ''}
+                            ${submission.notes ? `<div style="background: #fff3cd; padding: 12px; border-radius: 8px; margin: 12px 0; border-left: 4px solid #f39c12;"><strong>📝 Nota do autor:</strong> ${submission.notes.length > 100 ? submission.notes.substring(0, 100) + '...' : submission.notes}</div>` : ''}
                             <div class="submission-actions">
                                 <button class="btn-preview" onclick="showPreview(${submission.id}, true)">
-                                    👁️ Preview Completo
+                                    👁️ Ver Artigo Completo
                                 </button>
                                 <button class="btn-approve" onclick="approveSubmission(${submission.id})">
                                     ✅ Aprovar
