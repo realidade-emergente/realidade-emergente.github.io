@@ -550,24 +550,7 @@
         }
 
         .floating-follow {
-            position: fixed;
-            top: 50%;
-            right: 30px;
-            transform: translateY(-50%);
-            background: linear-gradient(45deg, #27ae60, #2ecc71);
-            color: white;
-            padding: 15px;
-            border-radius: 50px;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .floating-follow:hover {
-            transform: translateY(-50%) scale(1.1);
-            box-shadow: 0 12px 30px rgba(39, 174, 96, 0.4);
+            display: none; /* Removido pois não tem funcionalidade real */
         }
 
         .notification {
@@ -2104,7 +2087,7 @@
 
                 <div class="ai-tips">
                     <h4>📋 Prompt Padrão Pronto para Copiar</h4>
-                    <p>Copie o prompt abaixo e cole na sua IA preferida (Claude, ChatGPT, Gemini, etc.) para criar artigos compatíveis com o blog:</p>
+                    <p>Copie o prompt abaixo e cole na sua IA preferida (Claude, ChatGPT, Gemini, Deepseek, Manus, etc.) para criar artigos compatíveis com o blog:</p>
                 </div>
 
                 <div class="prompt-box">
@@ -2121,7 +2104,8 @@ Você é um pesquisador especializado criando um artigo para o blog "Realidade E
 
 **Categoria:** [Epistemologia/Filosofia da Mente/Filosofia da Ciência/Neurociência/Interdisciplinar]  
 **Tempo de leitura:** [X min]  
-**Autor:** [Seu nome]
+**Autor:** [Autor principal]
+**Coautores:** [Outros autores, se houver - separados por vírgula]
 
 ## Resumo
 [Parágrafo de 100-150 palavras resumindo o artigo, metodologia e principais conclusões]
@@ -2134,7 +2118,12 @@ Você é um pesquisador especializado criando um artigo para o blog "Realidade E
 [Conteúdo com citações e evidências]
 
 ### 1.2 [Subseção]
-[Tabelas se necessário - usar formato markdown]
+[Para tabelas, use o formato markdown correto:]
+
+| Coluna 1 | Coluna 2 | Coluna 3 |
+|----------|----------|----------|
+| Dados 1  | Dados 2  | Dados 3  |
+| Dados 4  | Dados 5  | Dados 6  |
 
 ## 2. [Seção Principal 2]
 [Continue a estrutura...]
@@ -2162,8 +2151,9 @@ Você é um pesquisador especializado criando um artigo para o blog "Realidade E
 - Extensão: 3.000-5.000 palavras
 - Tom: acadêmico mas acessível
 - Foco: epistemologia participativa, IA, consciência, ou filosofia da ciência
-- Inclua pelo menos 1 tabela e 1 seção de limitações
+- Inclua pelo menos 1 tabela (usando formato markdown correto) e 1 seção de limitações
 - Use evidências empíricas quando possível
+- Se houver múltiplos autores, liste em "Coautores"
 
 **TÓPICOS SUGERIDOS:**
 - IA e transformação epistemológica
@@ -2173,6 +2163,15 @@ Você é um pesquisador especializado criando um artigo para o blog "Realidade E
 - Cognição estendida e tecnologia
 - Ética da IA e moralidade
 - Realismo científico contemporâneo
+
+**IMPORTANTE PARA TABELAS:**
+Use EXATAMENTE este formato para tabelas funcionarem corretamente:
+```
+| Cabeçalho 1 | Cabeçalho 2 | Cabeçalho 3 |
+|-------------|-------------|-------------|
+| Linha 1 Col 1 | Linha 1 Col 2 | Linha 1 Col 3 |
+| Linha 2 Col 1 | Linha 2 Col 2 | Linha 2 Col 3 |
+```
 
 Crie um artigo seguindo EXATAMENTE esta estrutura markdown. Seja rigoroso, original e cite fontes reais.
                     </div>
@@ -2192,7 +2191,7 @@ Crie um artigo seguindo EXATAMENTE esta estrutura markdown. Seja rigoroso, origi
                 <div class="ai-tips">
                     <h4>💡 Dicas Importantes</h4>
                     <ul>
-                        <li>Use IAs como Claude-3, GPT-4, ou Gemini para melhores resultados</li>
+                        <li>Use IAs como Claude-3, ChatGPT, Gemini, Deepseek ou Manus para melhores resultados</li>
                         <li>Seja específico sobre o tema que deseja abordar</li>
                         <li>Peça para verificar as citações e referências</li>
                         <li>Solicite revisão da estrutura se algo estiver faltando</li>
@@ -2242,8 +2241,14 @@ Seu artigo aqui..."></textarea>
                             <input type="text" id="article-tags" placeholder="IA, consciência, epistemologia, neurociência (separadas por vírgula)">
                         </div>
                         <div class="form-group">
+                            <label for="additional-authors">Autores Adicionais (opcional):</label>
+                            <input type="text" id="additional-authors" placeholder="Coautores separados por vírgula (ex: João Silva, Maria Santos)">
+                            <small style="color: #666; font-size: 0.9em;">Se houver mais de um autor, liste os demais aqui</small>
+                        </div>
+                        <div class="form-group">
                             <label for="submission-notes">Notas sobre a submissão (opcional):</label>
                             <textarea id="submission-notes" rows="3" placeholder="Processo de criação, IA utilizada, motivação para o artigo, etc."></textarea>
+                            <small style="color: #666; font-size: 0.9em;">Esta nota será incluída como primeiro comentário se o artigo for aprovado</small>
                         </div>
                         <button type="submit" class="submit-btn">🚀 Submeter Artigo</button>
                     </form>
@@ -2310,15 +2315,21 @@ Seu artigo aqui..."></textarea>
                     <h3>Boas-vindas</h3>
                     <p>Olá! Sou <strong>Bruno Francisco Prado Rocha</strong>, e é uma honra recebê-lo aqui.</p>
                     <div class="author-quote">
-                        "Quem aqui entra, faz-me uma honra com sua participação; quem não entra, eu apenas contemplo enquanto aguardo sua chegada, porque conhecimento não é luxo acadêmico, mas ferramenta de agência."
+                        "Quem aqui entra, faz-me uma honra com sua participação e atenção dedicada à minha proposta, porque, em verdade, o conhecimento que ambos almejamos não é luxo acadêmico, mas ferramenta de agência."
                     </div>
                 </div>
                 
-                <p>Pesquisador amador e entusiasta da <strong>epistemologia participativa</strong> - a ideia de que a IA pode democratizar o rigor científico, permitindo que mentes curiosas de todas as origens contribuam para o avanço do conhecimento humano.</p>
+                <p><em>Pesquisador amador e entusiasta da <strong>epistemologia participativa</strong> - a ideia de que a IA pode democratizar o rigor científico, permitindo que mentes curiosas de todas as origens contribuam para o avanço do conhecimento humano.</em></p>
                 
-                <p>Acredito que estamos no limiar de uma revolução epistemológica: onde a investigação rigorosa deixa de ser privilégio acadêmico e se torna ferramenta acessível a todos os que desejam compreender melhor nossa realidade.</p>
+                <p><em>Acredito que estamos no limiar de uma revolução epistemológica: onde a investigação rigorosa deixa de ser privilégio acadêmico e se torna ferramenta acessível a todos os que desejam compreender melhor nossa realidade.</em></p>
                 
-                <p>Este espaço é um laboratório de ideias - onde filosofia encontra neurociência, onde questões antigas ganham perspectivas contemporâneas, e onde cada visitante pode participar da grande conversa sobre quem somos e para onde vamos.</p>
+                <p><em>Este espaço é um laboratório de ideias - onde filosofia encontra neurociência, onde questões antigas ganham perspectivas contemporâneas, e onde cada visitante pode participar da grande conversa sobre quem somos e para onde vamos.</em></p>
+                
+                <p><em>Não busco competir com a academia tradicional, mas sim complementá-la, criando pontes entre curiosidade humana e método científico para formação de algo similar a um banco de ideias para eventualmente ser utilizado pela ciência formal, à qual reconheço sua fundamental importância.</em></p>
+                
+                <p><em>Este espaço é dedicado àqueles que acreditam que o conhecimento transcende muros institucionais e que, com as ferramentas certas, cada mente inquisitiva pode contribuir para desvelar os mistérios de nossa realidade emergente.</em></p>
+                
+                <p><em>Espero contar com sua singular contribuição e que mais blog como este se espalhem pela rede para que ampliar esse delicioso diálogo epistêmico.</em></p>
             </div>
 
             <div class="recent-posts">
@@ -2346,9 +2357,6 @@ Seu artigo aqui..."></textarea>
     </div>
 
     <button class="add-post" onclick="openCreateModal()">+</button>
-    <button class="floating-follow" onclick="toggleFollow()">
-        <span id="follow-icon">🔔</span> <span id="follow-text">Seguir</span>
-    </button>
     <button class="moderator-mode" onclick="openModeratorModal()">🛡️ Moderação</button>
 
     <div class="notification" id="notification"></div>
@@ -2402,14 +2410,43 @@ Seu artigo aqui..."></textarea>
     <script>
         // Estado global
         let likedArticles = new Set();
-        let isFollowing = false;
         let isModeratorAuthenticated = false;
         let pendingSubmissions = []; // Array para armazenar submissões pendentes
         let submissionIdCounter = 1; // Contador para IDs únicas
         
         // Função para processar Markdown básico
         function parseMarkdown(markdown) {
-            return markdown
+            let html = markdown;
+            
+            // Processar tabelas primeiro (antes de outros elementos)
+            html = html.replace(/\|(.+)\|\n\|(.+)\|\n((?:\|.+\|\n?)*)/g, function(match, headers, separator, rows) {
+                const headerCells = headers.split('|').map(cell => cell.trim()).filter(cell => cell);
+                const rowsArray = rows.trim().split('\n').map(row => 
+                    row.split('|').map(cell => cell.trim()).filter(cell => cell)
+                );
+                
+                let tableHtml = '<table class="data-table"><thead><tr>';
+                headerCells.forEach(header => {
+                    tableHtml += `<th>${header}</th>`;
+                });
+                tableHtml += '</tr></thead><tbody>';
+                
+                rowsArray.forEach(row => {
+                    if (row.length > 0) {
+                        tableHtml += '<tr>';
+                        row.forEach(cell => {
+                            tableHtml += `<td>${cell}</td>`;
+                        });
+                        tableHtml += '</tr>';
+                    }
+                });
+                
+                tableHtml += '</tbody></table>';
+                return tableHtml;
+            });
+            
+            // Processar outros elementos markdown
+            return html
                 .replace(/^# (.+)$/gm, '<h1>$1</h1>')
                 .replace(/^## (.+)$/gm, '<h2 class="section-heading">$1</h2>')
                 .replace(/^### (.+)$/gm, '<h3 class="subsection-heading">$1</h3>')
@@ -2423,7 +2460,9 @@ Seu artigo aqui..."></textarea>
                 .replace(/^(.+)$/gm, '<p>$1</p>')
                 .replace(/<\/p><p><li>/g, '<ul><li>')
                 .replace(/<\/li><\/p>/g, '</li></ul>')
-                .replace(/<p><\/p>/g, '');
+                .replace(/<p><\/p>/g, '')
+                .replace(/<p><table/g, '<table')
+                .replace(/<\/table><\/p>/g, '</table>');
         }
         
         // Função para extrair dados do markdown
@@ -2432,6 +2471,7 @@ Seu artigo aqui..."></textarea>
                 title: 'Artigo sem título',
                 category: 'Indefinida',
                 author: 'Autor anônimo',
+                additionalAuthors: '',
                 readTime: '10 min',
                 summary: '',
                 content: markdown
@@ -2445,9 +2485,13 @@ Seu artigo aqui..."></textarea>
             const categoryMatch = markdown.match(/\*\*Categoria:\*\*\s*(.+)/);
             if (categoryMatch) data.category = categoryMatch[1];
             
-            // Extrair autor
+            // Extrair autor principal
             const authorMatch = markdown.match(/\*\*Autor:\*\*\s*(.+)/);
             if (authorMatch) data.author = authorMatch[1];
+            
+            // Extrair autores adicionais se houver
+            const additionalAuthorsMatch = markdown.match(/\*\*Coautores:\*\*\s*(.+)/);
+            if (additionalAuthorsMatch) data.additionalAuthors = additionalAuthorsMatch[1];
             
             // Extrair tempo de leitura
             const timeMatch = markdown.match(/\*\*Tempo de leitura:\*\*\s*(.+)/);
@@ -2474,12 +2518,18 @@ Seu artigo aqui..."></textarea>
                 // Preview do formulário atual
                 const markdown = document.getElementById('article-markdown').value.trim();
                 const category = document.getElementById('article-category').value;
+                const additionalAuthors = document.getElementById('additional-authors').value.trim();
+                const notes = document.getElementById('submission-notes').value.trim();
+                
+                const extractedData = extractArticleData(markdown);
                 submission = {
                     id: 'preview',
                     markdown: markdown,
                     category: category,
+                    additionalAuthors: additionalAuthors || extractedData.additionalAuthors,
+                    notes: notes,
                     timestamp: new Date(),
-                    ...extractArticleData(markdown)
+                    ...extractedData
                 };
             }
             
@@ -2489,11 +2539,17 @@ Seu artigo aqui..."></textarea>
                 `Preview - ${submission.title}` : 
                 'Preview do seu Artigo';
             
+            // Construir string de autores
+            let authorString = submission.author;
+            if (submission.additionalAuthors) {
+                authorString += `, ${submission.additionalAuthors}`;
+            }
+            
             // Renderizar o artigo
-            const articleHtml = `
+            let articleHtml = `
                 <article class="article" style="margin: 0; box-shadow: none;">
                     <div class="article-meta">
-                        <span class="article-author">${submission.author}</span>
+                        <span class="article-author">${authorString}</span>
                         <span class="article-category">${submission.category}</span>
                         <span class="article-time">${submission.readTime}</span>
                     </div>
@@ -2509,6 +2565,17 @@ Seu artigo aqui..."></textarea>
                     </div>
                 </article>
             `;
+            
+            // Se for moderador e houver notas, mostrar as notas
+            if (isModeratorView && submission.notes) {
+                articleHtml += `
+                    <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px;">
+                        <h4 style="color: #856404; margin-bottom: 10px;">📝 Notas do Autor sobre a Submissão</h4>
+                        <p style="color: #856404; margin: 0;">${submission.notes}</p>
+                        <small style="color: #856404; font-style: italic;">Esta nota será incluída como primeiro comentário se o artigo for aprovado.</small>
+                    </div>
+                `;
+            }
             
             contentEl.innerHTML = articleHtml;
             
@@ -2549,17 +2616,20 @@ Seu artigo aqui..."></textarea>
             const markdown = document.getElementById('article-markdown').value.trim();
             const category = document.getElementById('article-category').value;
             const tags = document.getElementById('article-tags').value;
-            const notes = document.getElementById('submission-notes').value;
+            const additionalAuthors = document.getElementById('additional-authors').value.trim();
+            const notes = document.getElementById('submission-notes').value.trim();
             
+            const extractedData = extractArticleData(markdown);
             const submission = {
                 id: submissionIdCounter++,
                 markdown: markdown,
                 category: category,
                 tags: tags,
+                additionalAuthors: additionalAuthors || extractedData.additionalAuthors,
                 notes: notes,
                 timestamp: new Date(),
                 status: 'pending',
-                ...extractArticleData(markdown)
+                ...extractedData
             };
             
             pendingSubmissions.push(submission);
@@ -2571,9 +2641,14 @@ Seu artigo aqui..."></textarea>
             
             // Adicionar à lista da comunidade como "em análise"
             setTimeout(() => {
+                let authorString = submission.author;
+                if (submission.additionalAuthors) {
+                    authorString += ` e ${submission.additionalAuthors}`;
+                }
+                
                 addToCommunityList('article', {
                     title: submission.title,
-                    author: submission.author,
+                    author: authorString,
                     category: submission.category,
                     summary: 'Artigo submetido - aguardando aprovação da moderação'
                 });
@@ -2619,10 +2694,17 @@ Seu artigo aqui..."></textarea>
             const researchSubmission = document.querySelector('.research-submission');
             
             const newArticleId = `article${Date.now()}`;
+            
+            // Construir string de autores
+            let authorString = submission.author;
+            if (submission.additionalAuthors) {
+                authorString += `, ${submission.additionalAuthors}`;
+            }
+            
             const articleHtml = `
                 <article class="article" id="${newArticleId}" style="border-left: 4px solid #27ae60;">
                     <div class="article-meta">
-                        <span class="article-author">${submission.author}</span>
+                        <span class="article-author">${authorString}</span>
                         <span class="article-category" style="background: linear-gradient(45deg, #27ae60, #2ecc71);">${submission.category}</span>
                         <span class="article-time">${submission.readTime}</span>
                     </div>
@@ -2649,7 +2731,7 @@ Seu artigo aqui..."></textarea>
                                 <span>🔗</span> Compartilhar
                             </button>
                             <button class="social-btn comment-btn" onclick="toggleCommentsNew('${newArticleId}')">
-                                <span>💬</span> <span id="comment-count-${newArticleId}">0</span> Comentários
+                                <span>💬</span> <span id="comment-count-${newArticleId}">${submission.notes ? '1' : '0'}</span> Comentários
                             </button>
                         </div>
                         <div class="article-stats">
@@ -2663,9 +2745,18 @@ Seu artigo aqui..."></textarea>
                             <textarea placeholder="Comente sobre este artigo da comunidade..."></textarea>
                             <button onclick="addCommentNew('${newArticleId}')">Publicar Comentário</button>
                         </div>
-                        <div class="no-comments" style="text-align: center; color: #7f8c8d; padding: 20px; font-style: italic;">
-                            Ainda não há comentários. Seja o primeiro a comentar!
-                        </div>
+                        ${submission.notes ? `
+                            <div class="comment" style="background: #e8f5e8; border-left: 3px solid #27ae60; margin-bottom: 15px;">
+                                <div class="comment-author" style="color: #27ae60;">📝 Nota do(s) Autor(es)</div>
+                                <div class="comment-time">Submetido com o artigo</div>
+                                <div class="comment-text" style="font-style: italic;">${submission.notes}</div>
+                                <small style="color: #27ae60;">Nota sobre a submissão do artigo pelo(s) autor(es)</small>
+                            </div>
+                        ` : `
+                            <div class="no-comments" style="text-align: center; color: #7f8c8d; padding: 20px; font-style: italic;">
+                                Ainda não há comentários. Seja o primeiro a comentar!
+                            </div>
+                        `}
                     </div>
                 </article>
             `;
@@ -2773,18 +2864,24 @@ Seu artigo aqui..."></textarea>
                 `;
                 
                 pendingSubmissions.forEach(submission => {
+                    let authorString = submission.author;
+                    if (submission.additionalAuthors) {
+                        authorString += `, ${submission.additionalAuthors}`;
+                    }
+                    
                     submissionsHtml += `
                         <div class="submission-pending">
                             <div class="submission-title">${submission.title}</div>
                             <div class="submission-meta">
-                                <span>Por: ${submission.author}</span>
+                                <span>Por: ${authorString}</span>
                                 <span>Categoria: ${submission.category}</span>
                                 <span>Submetido: ${new Date(submission.timestamp).toLocaleString('pt-BR')}</span>
                             </div>
                             <div class="submission-description">${submission.summary || 'Resumo não disponível'}</div>
+                            ${submission.notes ? `<div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0; font-style: italic;"><strong>Notas do autor:</strong> ${submission.notes}</div>` : ''}
                             <div class="submission-actions">
                                 <button class="btn-preview" onclick="showPreview(${submission.id}, true)">
-                                    👁️ Preview
+                                    👁️ Preview Completo
                                 </button>
                                 <button class="btn-approve" onclick="approveSubmission(${submission.id})">
                                     ✅ Aprovar
@@ -2980,37 +3077,6 @@ Seu artigo aqui..."></textarea>
             } catch (error) {
                 console.error('Erro ao adicionar comentário:', error);
                 showNotification('❌ Erro ao publicar comentário');
-            }
-        }
-        
-        // Função de toggle do botão seguir
-        function toggleFollow() {
-            try {
-                const followBtn = document.querySelector('.floating-follow');
-                const followIcon = document.getElementById('follow-icon');
-                const followText = document.getElementById('follow-text');
-                
-                if (!followBtn || !followIcon || !followText) {
-                    console.error('Elementos de follow não encontrados');
-                    return;
-                }
-                
-                if (isFollowing) {
-                    isFollowing = false;
-                    followBtn.style.background = 'linear-gradient(45deg, #27ae60, #2ecc71)';
-                    followIcon.textContent = '🔔';
-                    followText.textContent = 'Seguir';
-                    showNotification('🔕 Você parou de seguir o blog');
-                } else {
-                    isFollowing = true;
-                    followBtn.style.background = 'linear-gradient(45deg, #e74c3c, #c0392b)';
-                    followIcon.textContent = '✓';
-                    followText.textContent = 'Seguindo';
-                    showNotification('🔔 Agora você segue o blog! Receberá notificações de novos posts.');
-                }
-            } catch (error) {
-                console.error('Erro ao toggle follow:', error);
-                showNotification('❌ Erro ao alterar seguimento');
             }
         }
         
