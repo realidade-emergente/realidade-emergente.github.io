@@ -550,7 +550,7 @@
         }
 
         .floating-follow {
-            display: none; /* Removido pois não tem funcionalidade real */
+            display: none;
         }
 
         .notification {
@@ -660,6 +660,7 @@
             padding: 20px;
             border-radius: 8px;
             margin: 20px 0;
+            border-left: 4px solid #3498db;
         }
 
         .references h4 {
@@ -668,13 +669,25 @@
         }
 
         .references ol {
-            padding-left: 20px;
+            padding-left: 25px !important;
+            margin: 15px 0 !important;
+            counter-reset: ref-counter;
         }
 
         .references li {
-            margin-bottom: 8px;
-            font-size: 0.9em;
-            line-height: 1.4;
+            margin-bottom: 12px !important;
+            font-size: 0.9em !important;
+            line-height: 1.5 !important;
+            display: list-item !important;
+            list-style: decimal !important;
+            counter-increment: ref-counter;
+            text-align: left !important;
+        }
+
+        /* Forçar numeração correta nas referências */
+        .references ol li::marker {
+            font-weight: bold;
+            color: #3498db;
         }
 
         /* Seção IA para Artigos */
@@ -768,12 +781,12 @@
 
         .preview-modal-content {
             background-color: white;
-            margin: 2% auto;
+            margin: 1% auto;
             padding: 0;
             border-radius: 15px;
-            width: 95%;
-            max-width: 1200px;
-            max-height: 90vh;
+            width: 96%;
+            max-width: 1400px;
+            height: 96vh;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
@@ -789,61 +802,36 @@
             background: #f8f9fa;
             border-radius: 15px 15px 0 0;
             flex-shrink: 0;
+            min-height: 60px;
         }
 
         .preview-content {
             flex: 1;
-            overflow-y: auto;
+            overflow-y: scroll !important;
             padding: 30px;
             min-height: 0;
-            max-height: calc(90vh - 140px); /* Desconta header e footer */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: white;
         }
 
         .preview-content::-webkit-scrollbar {
-            width: 8px;
+            width: 12px;
         }
 
         .preview-content::-webkit-scrollbar-track {
             background: #f1f1f1;
-            border-radius: 4px;
+            border-radius: 6px;
         }
 
         .preview-content::-webkit-scrollbar-thumb {
             background: #c1c1c1;
-            border-radius: 4px;
+            border-radius: 6px;
+            border: 2px solid #f1f1f1;
         }
 
         .preview-content::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
-        }
-
-        /* Remover estilos que podem estar interferindo no preview */
-        .preview-content * {
-            max-width: 100% !important;
-            box-sizing: border-box !important;
-        }
-
-        .preview-content .data-table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-            margin: 20px 0 !important;
-            background: #fff !important;
-            border-radius: 8px !important;
-            overflow: hidden !important;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
-        }
-
-        .preview-content .data-table th, 
-        .preview-content .data-table td {
-            padding: 12px 15px !important;
-            text-align: left !important;
-            border-bottom: 1px solid #eee !important;
-        }
-
-        .preview-content .data-table th {
-            background: #f8f9fa !important;
-            font-weight: 600 !important;
-            color: #2c3e50 !important;
         }
 
         .preview-actions {
@@ -855,42 +843,51 @@
             background: #f8f9fa;
             border-radius: 0 0 15px 15px;
             flex-shrink: 0;
+            min-height: 70px;
+            align-items: center;
         }
 
         .preview-btn {
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
+            font-size: 1em;
+            min-width: 120px;
+        }
+
+        .preview-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .preview-btn.approve {
-            background: #27ae60;
+            background: #28a745;
             color: white;
         }
 
         .preview-btn.approve:hover {
-            background: #219a52;
+            background: #218838;
         }
 
         .preview-btn.reject {
-            background: #e74c3c;
+            background: #dc3545;
             color: white;
         }
 
         .preview-btn.reject:hover {
-            background: #c0392b;
+            background: #c82333;
         }
 
         .preview-btn.close {
-            background: #95a5a6;
+            background: #6c757d;
             color: white;
         }
 
         .preview-btn.close:hover {
-            background: #7f8c8d;
+            background: #5a6268;
         }
 
         .submission-pending {
@@ -1614,31 +1611,31 @@
                     <div class="references">
                         <h4>Referências</h4>
                         <ol>
-                            <li>Camus, A. (1942). *O Mito de Sísifo*. Gallimard.</li>
-                            <li>Chalmers, D. (2010). *The Character of Consciousness*. Oxford University Press.</li>
-                            <li>Churchland, P. (2013). *Touching a Nerve: The Self as Brain*. W.W. Norton.</li>
-                            <li>Damasio, A. (1994). *O Erro de Descartes*. Companhia das Letras.</li>
-                            <li>Dennett, D. (1984). *Elbow Room: The Varieties of Free Will Worth Wanting*. MIT Press.</li>
-                            <li>Frankfurt, H. (1969). Alternate possibilities and moral responsibility. *Journal of Philosophy*, 66(23), 829-839.</li>
-                            <li>Hacking, I. (1995). The looping effects of human kinds. *Causal Cognition: A Multidisciplinary Debate*, 351-394.</li>
-                            <li>Haggard, P. (2017). Sense of agency in the human brain. *Nature Reviews Neuroscience*, 18(4), 196-207.</li>
-                            <li>Heidegger, M. (1927). *Ser e Tempo*. Max Niemeyer Verlag.</li>
-                            <li>James, W. (1890). *The Principles of Psychology*. Harvard University Press.</li>
-                            <li>Kane, R. (1996). *The Significance of Free Will*. Oxford University Press.</li>
-                            <li>Ladyman, J. (1998). What is structural realism? *Studies in History and Philosophy of Science*, 29(3), 409-424.</li>
-                            <li>Libet, B. (1985). Unconscious cerebral initiative and the role of conscious will in voluntary action. *Behavioral and Brain Sciences*, 8(4), 529-539.</li>
-                            <li>Merleau-Ponty, M. (1945). *Fenomenologia da Percepção*. Gallimard.</li>
-                            <li>Nagel, T. (1986). *The View from Nowhere*. Oxford University Press.</li>
-                            <li>Noë, A. (2004). *Action in Perception*. MIT Press.</li>
-                            <li>Parfit, D. (1984). *Reasons and Persons*. Oxford University Press.</li>
-                            <li>Putnam, H. (1981). *Reason, Truth and History*. Cambridge University Press.</li>
-                            <li>Schechtman, M. (1996). *The Constitution of Selves*. Cornell University Press.</li>
-                            <li>Thompson, E. (2007). *Mind in Life: Biology, Phenomenology, and the Sciences of Mind*. Harvard University Press.</li>
-                            <li>van Fraassen, B. (1980). *The Scientific Image*. Oxford University Press.</li>
-                            <li>Varela, F., Thompson, E., & Rosch, E. (1991). *The Embodied Mind*. MIT Press.</li>
-                            <li>Wheeler, J. A. (1989). Information, physics, quantum: The search for links. *Proceedings of the 3rd International Symposium on Foundations of Quantum Mechanics*, 354-368.</li>
-                            <li>Wolf, S. (1990). *Freedom Within Reason*. Oxford University Press.</li>
-                            <li>Worrall, J. (1989). Structural realism: The best of both worlds? *Dialectica*, 43(1-2), 99-124.</li>
+                            <li>Camus, A. (1942). O Mito de Sísifo. Gallimard.</li>
+                            <li>Chalmers, D. (2010). The Character of Consciousness. Oxford University Press.</li>
+                            <li>Churchland, P. (2013). Touching a Nerve: The Self as Brain. W.W. Norton.</li>
+                            <li>Damasio, A. (1994). O Erro de Descartes. Companhia das Letras.</li>
+                            <li>Dennett, D. (1984). Elbow Room: The Varieties of Free Will Worth Wanting. MIT Press.</li>
+                            <li>Frankfurt, H. (1969). Alternate possibilities and moral responsibility. Journal of Philosophy, 66(23), 829-839.</li>
+                            <li>Hacking, I. (1995). The looping effects of human kinds. Causal Cognition: A Multidisciplinary Debate, 351-394.</li>
+                            <li>Haggard, P. (2017). Sense of agency in the human brain. Nature Reviews Neuroscience, 18(4), 196-207.</li>
+                            <li>Heidegger, M. (1927). Ser e Tempo. Max Niemeyer Verlag.</li>
+                            <li>James, W. (1890). The Principles of Psychology. Harvard University Press.</li>
+                            <li>Kane, R. (1996). The Significance of Free Will. Oxford University Press.</li>
+                            <li>Ladyman, J. (1998). What is structural realism? Studies in History and Philosophy of Science, 29(3), 409-424.</li>
+                            <li>Libet, B. (1985). Unconscious cerebral initiative and the role of conscious will in voluntary action. Behavioral and Brain Sciences, 8(4), 529-539.</li>
+                            <li>Merleau-Ponty, M. (1945). Fenomenologia da Percepção. Gallimard.</li>
+                            <li>Nagel, T. (1986). The View from Nowhere. Oxford University Press.</li>
+                            <li>Noë, A. (2004). Action in Perception. MIT Press.</li>
+                            <li>Parfit, D. (1984). Reasons and Persons. Oxford University Press.</li>
+                            <li>Putnam, H. (1981). Reason, Truth and History. Cambridge University Press.</li>
+                            <li>Schechtman, M. (1996). The Constitution of Selves. Cornell University Press.</li>
+                            <li>Thompson, E. (2007). Mind in Life: Biology, Phenomenology, and the Sciences of Mind. Harvard University Press.</li>
+                            <li>van Fraassen, B. (1980). The Scientific Image. Oxford University Press.</li>
+                            <li>Varela, F., Thompson, E., & Rosch, E. (1991). The Embodied Mind. MIT Press.</li>
+                            <li>Wheeler, J. A. (1989). Information, physics, quantum: The search for links. Proceedings of the 3rd International Symposium on Foundations of Quantum Mechanics, 354-368.</li>
+                            <li>Wolf, S. (1990). Freedom Within Reason. Oxford University Press.</li>
+                            <li>Worrall, J. (1989). Structural realism: The best of both worlds? Dialectica, 43(1-2), 99-124.</li>
                         </ol>
                     </div>
                 </div>
@@ -2466,13 +2463,16 @@ Seu artigo aqui..."></textarea>
         let pendingSubmissions = []; // Array para armazenar submissões pendentes
         let submissionIdCounter = 1; // Contador para IDs únicas
         
-        // Função para processar Markdown básico - versão melhorada
-        function parseMarkdown(markdown) {
+        // Função para processar Markdown básico - versão corrigida
+        function parseMarkdown(markdown, isFullArticle = false) {
             if (!markdown || markdown.trim() === '') {
                 return '<p>Conteúdo não disponível</p>';
             }
             
-            console.log('Processando markdown, tamanho:', markdown.length); // Debug
+            console.log('🔍 PROCESSANDO MARKDOWN:');
+            console.log('- Tamanho:', markdown.length);
+            console.log('- É artigo completo:', isFullArticle);
+            console.log('- Início:', markdown.substring(0, 200) + '...');
             
             let html = markdown;
             
@@ -2513,42 +2513,80 @@ Seu artigo aqui..."></textarea>
                 .replace(/\*(.+?)\*/g, '<em>$1</em>')
                 .replace(/^> (.+)$/gm, '<blockquote style="border-left: 4px solid #3498db; padding: 15px 20px; margin: 20px 0; background: #f8f9fa; border-radius: 5px; color: #666;">$1</blockquote>');
             
-            // Processar listas e parágrafos de forma mais robusta
-            const paragraphs = html.split(/\n\s*\n/);
-            const processedParagraphs = paragraphs.map(para => {
-                const trimmed = para.trim();
-                if (!trimmed) return '';
+            // PROCESSAR SEÇÕES ESPECIAIS (antes das listas genéricas)
+            // Identificar e processar seção de Referências
+            html = html.replace(/(## Referências?\s*\n)([\s\S]*?)(?=\n##|\n#|$)/g, function(match, heading, content) {
+                console.log('📚 Processando seção de Referências');
                 
-                // Se já contém tags HTML (headings, blockquotes, etc), não processar
-                if (trimmed.match(/^<(h[1-6]|blockquote|table|div)/)) {
-                    return trimmed;
-                }
+                let referencesHtml = heading.replace(/^## (.+)$/gm, '<h2 style="color: #2c3e50; font-size: 1.6em; margin: 25px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #3498db;">$1</h2>');
                 
-                // Processar listas
-                if (trimmed.match(/^(\d+\.\s|[-*]\s)/m)) {
-                    const lines = trimmed.split('\n');
-                    const listItems = lines.map(line => {
-                        if (line.match(/^\d+\.\s/)) {
-                            return '<li>' + line.replace(/^\d+\.\s/, '') + '</li>';
-                        } else if (line.match(/^[-*]\s/)) {
-                            return '<li>' + line.replace(/^[-*]\s/, '') + '</li>';
-                        }
-                        return line;
-                    }).join('');
+                // Processar lista numerada de referências
+                const refLines = content.trim().split('\n').filter(line => line.trim());
+                if (refLines.length > 0 && refLines[0].match(/^\d+\./)) {
+                    referencesHtml += '<div class="references"><ol style="padding-left: 20px; counter-reset: ref-counter;">';
                     
-                    if (trimmed.match(/^\d+\./)) {
-                        return '<ol style="margin: 15px 0; padding-left: 25px; line-height: 1.6;">' + listItems + '</ol>';
-                    } else {
-                        return '<ul style="margin: 15px 0; padding-left: 25px; line-height: 1.6;">' + listItems + '</ul>';
-                    }
+                    refLines.forEach(line => {
+                        if (line.match(/^\d+\./)) {
+                            const refText = line.replace(/^\d+\.\s*/, '');
+                            referencesHtml += `<li style="margin-bottom: 12px; font-size: 0.9em; line-height: 1.5; counter-increment: ref-counter; display: list-item; list-style: decimal;">${refText}</li>`;
+                        }
+                    });
+                    
+                    referencesHtml += '</ol></div>';
+                } else {
+                    // Fallback para referências não numeradas
+                    referencesHtml += `<div class="references">${content}</div>`;
                 }
                 
-                // Parágrafos normais
-                return '<p style="margin: 15px 0; line-height: 1.6; text-align: justify; color: #333;">' + trimmed + '</p>';
+                return referencesHtml;
             });
             
-            const result = processedParagraphs.join('\n');
-            console.log('Markdown processado, tamanho resultado:', result.length); // Debug
+            // Processar listas e parágrafos de forma mais robusta
+            const sections = html.split(/(?=\n##|\n#)/);
+            const processedSections = sections.map(section => {
+                if (section.includes('<div class="references">')) {
+                    // Já processou as referências, retornar como está
+                    return section;
+                }
+                
+                const paragraphs = section.split(/\n\s*\n/);
+                const processedParagraphs = paragraphs.map(para => {
+                    const trimmed = para.trim();
+                    if (!trimmed) return '';
+                    
+                    // Se já contém tags HTML (headings, blockquotes, etc), não processar
+                    if (trimmed.match(/^<(h[1-6]|blockquote|table|div)/)) {
+                        return trimmed;
+                    }
+                    
+                    // Processar listas genéricas (não referências)
+                    if (trimmed.match(/^(\d+\.\s|[-*]\s)/m) && !trimmed.includes('## Referências')) {
+                        const lines = trimmed.split('\n');
+                        const listItems = lines.map(line => {
+                            if (line.match(/^\d+\.\s/)) {
+                                return '<li style="margin-bottom: 8px;">' + line.replace(/^\d+\.\s/, '') + '</li>';
+                            } else if (line.match(/^[-*]\s/)) {
+                                return '<li style="margin-bottom: 8px;">' + line.replace(/^[-*]\s/, '') + '</li>';
+                            }
+                            return line;
+                        }).join('');
+                        
+                        if (trimmed.match(/^\d+\./)) {
+                            return '<ol style="margin: 15px 0; padding-left: 25px; line-height: 1.6;">' + listItems + '</ol>';
+                        } else {
+                            return '<ul style="margin: 15px 0; padding-left: 25px; line-height: 1.6;">' + listItems + '</ul>';
+                        }
+                    }
+                    
+                    // Parágrafos normais
+                    return '<p style="margin: 15px 0; line-height: 1.6; text-align: justify; color: #333;">' + trimmed + '</p>';
+                });
+                
+                return processedParagraphs.join('\n');
+            });
+            
+            const result = processedSections.join('\n');
+            console.log('✅ Markdown processado. Tamanho resultado:', result.length);
             
             return result;
         }
@@ -2592,8 +2630,12 @@ Seu artigo aqui..."></textarea>
             return data;
         }
         
-        // Função para mostrar preview
+        // Função para mostrar preview - VERSÃO CORRIGIDA
         function showPreview(submissionId = null, isModeratorView = false) {
+            console.log('🔍 INICIANDO PREVIEW');
+            console.log('- Submission ID:', submissionId);
+            console.log('- Is Moderator View:', isModeratorView);
+            
             const modal = document.getElementById('previewModal');
             const titleEl = document.getElementById('preview-title');
             const contentEl = document.getElementById('preview-content');
@@ -2602,7 +2644,12 @@ Seu artigo aqui..."></textarea>
             let submission;
             if (submissionId) {
                 submission = pendingSubmissions.find(s => s.id === submissionId);
-                console.log('Submission encontrada:', submission); // Debug
+                console.log('📄 Submission encontrada:', submission ? 'SIM' : 'NÃO');
+                if (submission) {
+                    console.log('- Título:', submission.title);
+                    console.log('- Markdown length:', submission.markdown ? submission.markdown.length : 'undefined');
+                    console.log('- Markdown preview:', submission.markdown ? submission.markdown.substring(0, 100) + '...' : 'undefined');
+                }
             } else {
                 // Preview do formulário atual
                 const markdown = document.getElementById('article-markdown').value.trim();
@@ -2620,92 +2667,109 @@ Seu artigo aqui..."></textarea>
                     timestamp: new Date(),
                     ...extractedData
                 };
+                console.log('📝 Preview do formulário criado');
             }
             
             if (!submission) {
-                console.error('Submission não encontrada');
+                console.error('❌ Submission não encontrada');
+                alert('Erro: Submissão não encontrada');
                 return;
             }
             
             titleEl.textContent = isModeratorView ? 
-                `Preview Completo - ${submission.title}` : 
-                'Preview do seu Artigo';
+                `🔍 Preview Completo - ${submission.title}` : 
+                '👁️ Preview do seu Artigo';
             
             // Construir string de autores
-            let authorString = submission.author;
+            let authorString = submission.author || 'Autor não especificado';
             if (submission.additionalAuthors) {
                 authorString += `, ${submission.additionalAuthors}`;
             }
             
-            // RENDERIZAR O ARTIGO COMPLETO - usar submission.markdown, não content
+            // USAR O MARKDOWN COMPLETO DIRETAMENTE
             const fullMarkdown = submission.markdown || submission.content || '';
-            console.log('Markdown a ser processado:', fullMarkdown.substring(0, 200) + '...'); // Debug
+            console.log('📄 Processando markdown completo, tamanho:', fullMarkdown.length);
+            
+            if (!fullMarkdown.trim()) {
+                console.error('❌ Markdown vazio!');
+                contentEl.innerHTML = '<p style="color: red; text-align: center; padding: 40px;">❌ Erro: Conteúdo do artigo vazio</p>';
+                modal.style.display = 'block';
+                return;
+            }
+            
+            // RENDERIZAR O ARTIGO COMPLETO COM PROCESSAMENTO MELHORADO
+            const processedContent = parseMarkdown(fullMarkdown, true);
+            console.log('✅ Markdown processado, tamanho resultado:', processedContent.length);
             
             let articleHtml = `
-                <div style="max-width: 100%; overflow-x: hidden;">
-                    <article style="background: white; padding: 0; margin: 0; border: none; box-shadow: none;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
-                            <span style="font-weight: 600; color: #3498db; font-size: 1.1em;">${authorString}</span>
-                            <span style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9em;">${submission.category}</span>
-                            <span style="color: #7f8c8d; font-size: 0.9em;">${submission.readTime}</span>
+                <div style="max-width: 100%; width: 100%; overflow-x: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                    <article style="background: white; padding: 0; margin: 0; border: none; box-shadow: none; line-height: 1.6;">
+                        <!-- Cabeçalho do artigo -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #3498db;">
+                            <span style="font-weight: 600; color: #3498db; font-size: 1.1em;">👤 ${authorString}</span>
+                            <span style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9em; font-weight: 500;">📂 ${submission.category}</span>
+                            <span style="color: #7f8c8d; font-size: 0.9em;">⏱️ ${submission.readTime || '10 min'}</span>
                         </div>
                         
-                        <h1 style="font-size: 2.2em; color: #2c3e50; margin-bottom: 20px; line-height: 1.3;">${submission.title}</h1>
+                        <!-- Título principal -->
+                        <h1 style="font-size: 2.5em; color: #2c3e50; margin: 30px 0 25px 0; line-height: 1.2; text-align: left; font-weight: 700;">${submission.title}</h1>
                         
+                        <!-- Resumo se existir -->
                         ${submission.summary ? `
-                            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 3px solid #3498db;">
-                                <h3 style="color: #2c3e50; margin-bottom: 10px; font-size: 1.1em;">Resumo</h3>
-                                <p style="margin: 0; line-height: 1.6;">${submission.summary}</p>
+                            <div style="background: #e8f4fd; padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #3498db; box-shadow: 0 2px 10px rgba(52, 152, 219, 0.1);">
+                                <h3 style="color: #2c3e50; margin-bottom: 15px; font-size: 1.2em; font-weight: 600;">📋 Resumo</h3>
+                                <p style="margin: 0; line-height: 1.7; color: #444; font-size: 1.05em;">${submission.summary}</p>
                             </div>
                         ` : ''}
                         
-                        <div style="margin-top: 30px;">
-                            ${parseMarkdown(fullMarkdown)}
+                        <!-- Conteúdo principal processado -->
+                        <div style="margin-top: 40px; line-height: 1.7; color: #333;">
+                            ${processedContent}
                         </div>
                     </article>
                 </div>
             `;
             
-            // Se for moderador e houver notas, mostrar as notas DESTACADAS
+            // ADICIONAR NOTAS DO AUTOR DESTACADAS (MODERADOR)
             if (isModeratorView && submission.notes) {
                 articleHtml += `
-                    <div style="margin-top: 40px; padding: 25px; background: #fff3cd; border: 3px solid #ffc107; border-radius: 12px; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);">
-                        <h3 style="color: #856404; margin-bottom: 15px; font-size: 1.3em; display: flex; align-items: center;">
-                            📝 <span style="margin-left: 10px;">Notas do Autor sobre a Submissão</span>
+                    <div style="margin-top: 50px; padding: 30px; background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border: 3px solid #f39c12; border-radius: 15px; box-shadow: 0 8px 25px rgba(243, 156, 18, 0.2);">
+                        <h3 style="color: #856404; margin-bottom: 20px; font-size: 1.4em; display: flex; align-items: center; font-weight: 700;">
+                            📝 <span style="margin-left: 12px;">Notas do Autor sobre a Submissão</span>
                         </h3>
-                        <div style="background: white; padding: 20px; border-radius: 8px; border-left: 5px solid #f39c12; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                            <p style="color: #333; margin: 0; font-size: 1.1em; line-height: 1.7; font-style: italic;">"${submission.notes}"</p>
+                        <div style="background: white; padding: 25px; border-radius: 12px; border-left: 6px solid #f39c12; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <p style="color: #333; margin: 0; font-size: 1.15em; line-height: 1.8; font-style: italic; font-weight: 500;">"${submission.notes}"</p>
                         </div>
-                        <div style="margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.7); border-radius: 8px;">
-                            <strong style="color: #856404;">💡 Ação após aprovação:</strong>
-                            <p style="color: #856404; margin: 5px 0 0 0; font-size: 0.95em;">Esta nota será automaticamente incluída como o primeiro comentário do artigo, destacado em verde e identificado como "Nota do(s) Autor(es)".</p>
+                        <div style="margin-top: 20px; padding: 20px; background: rgba(255, 255, 255, 0.8); border-radius: 10px; border: 1px solid #f39c12;">
+                            <strong style="color: #856404; font-size: 1.1em;">💡 Ação após aprovação:</strong>
+                            <p style="color: #856404; margin: 8px 0 0 0; font-size: 1em; line-height: 1.6;">Esta nota será automaticamente incluída como o primeiro comentário do artigo, destacado em verde e identificado como "Nota do(s) Autor(es)".</p>
                         </div>
                     </div>
                 `;
             }
             
-            // Se for moderador, adicionar informações extras da submissão
+            // ADICIONAR INFORMAÇÕES DA SUBMISSÃO (MODERADOR)
             if (isModeratorView) {
                 articleHtml += `
-                    <div style="margin-top: 30px; padding: 25px; background: #e9ecef; border-radius: 12px; border: 1px solid #ced4da;">
-                        <h3 style="color: #495057; margin-bottom: 20px; font-size: 1.2em;">ℹ️ Informações da Submissão</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                            <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                                <strong style="color: #6c757d;">📅 Data de Submissão:</strong><br>
-                                <span style="font-size: 1.1em;">${new Date(submission.timestamp).toLocaleString('pt-BR')}</span>
+                    <div style="margin-top: 40px; padding: 30px; background: #e9ecef; border-radius: 15px; border: 2px solid #ced4da;">
+                        <h3 style="color: #495057; margin-bottom: 25px; font-size: 1.3em; font-weight: 600;">ℹ️ Informações da Submissão</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                            <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); border-left: 4px solid #007bff;">
+                                <strong style="color: #6c757d; font-size: 1em;">📅 Data de Submissão:</strong><br>
+                                <span style="font-size: 1.1em; color: #333; font-weight: 500;">${new Date(submission.timestamp).toLocaleString('pt-BR')}</span>
                             </div>
-                            <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                                <strong style="color: #6c757d;">📂 Categoria:</strong><br>
-                                <span style="font-size: 1.1em;">${submission.category}</span>
+                            <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); border-left: 4px solid #28a745;">
+                                <strong style="color: #6c757d; font-size: 1em;">📂 Categoria:</strong><br>
+                                <span style="font-size: 1.1em; color: #333; font-weight: 500;">${submission.category}</span>
                             </div>
-                            <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                                <strong style="color: #6c757d;">⏱️ Tempo de Leitura:</strong><br>
-                                <span style="font-size: 1.1em;">${submission.readTime}</span>
+                            <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); border-left: 4px solid #ffc107;">
+                                <strong style="color: #6c757d; font-size: 1em;">⏱️ Tempo de Leitura:</strong><br>
+                                <span style="font-size: 1.1em; color: #333; font-weight: 500;">${submission.readTime || '10 min'}</span>
                             </div>
                             ${submission.tags ? `
-                                <div style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                                    <strong style="color: #6c757d;">🏷️ Tags:</strong><br>
-                                    <span style="font-size: 1.1em;">${submission.tags}</span>
+                                <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); border-left: 4px solid #6f42c1;">
+                                    <strong style="color: #6c757d; font-size: 1em;">🏷️ Tags:</strong><br>
+                                    <span style="font-size: 1.1em; color: #333; font-weight: 500;">${submission.tags}</span>
                                 </div>
                             ` : ''}
                         </div>
@@ -2713,42 +2777,48 @@ Seu artigo aqui..."></textarea>
                 `;
             }
             
+            // APLICAR O HTML FINAL
             contentEl.innerHTML = articleHtml;
+            console.log('✅ HTML aplicado ao modal');
             
-            // Configurar ações com textos mais claros
+            // CONFIGURAR AÇÕES DO MODAL
             if (isModeratorView) {
                 actionsEl.innerHTML = `
-                    <button class="preview-btn approve" onclick="approveSubmission(${submission.id})" style="background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                        ✓ Aprovar e Publicar no Blog
+                    <button class="preview-btn approve" onclick="approveSubmission(${submission.id})" style="background: #28a745; color: white; padding: 14px 28px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1em; box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);">
+                        ✅ Aprovar e Publicar no Blog
                     </button>
-                    <button class="preview-btn reject" onclick="rejectSubmission(${submission.id})" style="background: #dc3545; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                        ✗ Rejeitar Submissão
+                    <button class="preview-btn reject" onclick="rejectSubmission(${submission.id})" style="background: #dc3545; color: white; padding: 14px 28px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1em; box-shadow: 0 2px 10px rgba(220, 53, 69, 0.3);">
+                        ❌ Rejeitar Submissão
                     </button>
-                    <button class="preview-btn close" onclick="closePreviewModal()" style="background: #6c757d; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                        Fechar Preview
+                    <button class="preview-btn close" onclick="closePreviewModal()" style="background: #6c757d; color: white; padding: 14px 28px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1em;">
+                        🚪 Fechar Preview
                     </button>
                 `;
             } else {
                 actionsEl.innerHTML = `
-                    <button class="preview-btn approve" onclick="confirmSubmission()" style="background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                        ✓ Confirmar e Submeter
+                    <button class="preview-btn approve" onclick="confirmSubmission()" style="background: #28a745; color: white; padding: 14px 28px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1em;">
+                        ✅ Confirmar e Submeter
                     </button>
-                    <button class="preview-btn close" onclick="closePreviewModal()" style="background: #6c757d; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                        ✗ Cancelar
+                    <button class="preview-btn close" onclick="closePreviewModal()" style="background: #6c757d; color: white; padding: 14px 28px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1em;">
+                        ❌ Cancelar
                     </button>
                 `;
             }
             
+            // MOSTRAR O MODAL
             modal.style.display = 'block';
+            console.log('✅ Modal exibido');
             
-            // Garantir que o scroll funcione e vá para o topo
+            // FORÇAR SCROLL PARA O TOPO APÓS RENDERIZAÇÃO COMPLETA
             setTimeout(() => {
                 const previewContent = document.querySelector('.preview-content');
                 if (previewContent) {
                     previewContent.scrollTop = 0;
-                    console.log('Preview content height:', previewContent.scrollHeight); // Debug
+                    console.log('📏 Preview content height:', previewContent.scrollHeight);
+                    console.log('📏 Preview content scroll height:', previewContent.clientHeight);
+                    console.log('✅ Scroll resetado para o topo');
                 }
-            }, 100);
+            }, 200);
         }
         
         // Função para fechar preview
@@ -2765,30 +2835,58 @@ Seu artigo aqui..."></textarea>
             }, 300);
         }
         
-        // Função para confirmar submissão após preview
+        // Função para confirmar submissão após preview - CORRIGIDA
         function confirmSubmission() {
+            console.log('🚀 INICIANDO CONFIRMAÇÃO DE SUBMISSÃO');
+            
             const markdown = document.getElementById('article-markdown').value.trim();
             const category = document.getElementById('article-category').value;
             const tags = document.getElementById('article-tags').value;
             const additionalAuthors = document.getElementById('additional-authors').value.trim();
             const notes = document.getElementById('submission-notes').value.trim();
             
+            console.log('📄 Dados coletados:');
+            console.log('- Markdown length:', markdown.length);
+            console.log('- Category:', category);
+            console.log('- Tags:', tags);
+            console.log('- Additional Authors:', additionalAuthors);
+            console.log('- Notes:', notes);
+            
+            if (!markdown.trim()) {
+                alert('❌ Erro: Conteúdo do artigo está vazio!');
+                return;
+            }
+            
             const extractedData = extractArticleData(markdown);
+            console.log('📋 Dados extraídos:', extractedData);
+            
             const submission = {
                 id: submissionIdCounter++,
-                markdown: markdown, // Garantir que o markdown completo seja salvo
-                originalMarkdown: markdown, // Backup do markdown original
+                markdown: markdown, // MARKDOWN COMPLETO ORIGINAL
+                originalMarkdown: markdown, // BACKUP
+                content: markdown, // COMPATIBILIDADE
                 category: category,
                 tags: tags,
                 additionalAuthors: additionalAuthors || extractedData.additionalAuthors,
                 notes: notes,
                 timestamp: new Date(),
                 status: 'pending',
-                ...extractedData
+                // Dados extraídos do markdown
+                title: extractedData.title,
+                author: extractedData.author,
+                readTime: extractedData.readTime,
+                summary: extractedData.summary
             };
             
-            console.log('Salvando submissão:', submission); // Debug
+            console.log('💾 SALVANDO SUBMISSÃO COMPLETA:');
+            console.log('- ID gerado:', submission.id);
+            console.log('- Título extraído:', submission.title);
+            console.log('- Autor extraído:', submission.author);
+            console.log('- Markdown salvo (length):', submission.markdown.length);
+            console.log('- Submission completa:', submission);
+            
             pendingSubmissions.push(submission);
+            console.log('📝 Total de submissões pendentes:', pendingSubmissions.length);
             
             closePreviewModal();
             document.getElementById('markdown-form').reset();
@@ -2808,7 +2906,11 @@ Seu artigo aqui..."></textarea>
                     category: submission.category,
                     summary: 'Artigo submetido - aguardando aprovação da moderação'
                 });
+                
+                console.log('✅ Submissão adicionada à lista da comunidade');
             }, 1000);
+            
+            console.log('✅ SUBMISSÃO CONFIRMADA COM SUCESSO');
         }
         
         // Função para aprovar submissão
@@ -2857,6 +2959,9 @@ Seu artigo aqui..."></textarea>
                 authorString += `, ${submission.additionalAuthors}`;
             }
             
+            // Processar o markdown completo para o artigo
+            const processedContent = parseMarkdown(submission.markdown || submission.content, true);
+            
             const articleHtml = `
                 <article class="article" id="${newArticleId}" style="border-left: 4px solid #27ae60;">
                     <div class="article-meta">
@@ -2876,7 +2981,7 @@ Seu artigo aqui..."></textarea>
                     </p>
                     <button class="read-more" onclick="toggleNewArticle('${newArticleId}')">Leia o artigo completo</button>
                     <div class="article-content" id="content-${newArticleId}">
-                        ${parseMarkdown(submission.content)}
+                        ${processedContent}
                     </div>
                     <div class="article-actions">
                         <div class="social-buttons">
@@ -3057,33 +3162,89 @@ Seu artigo aqui..."></textarea>
             }
         }
         
-        // Função de debug para diagnosticar problemas
+        // Função de debug melhorada para diagnosticar problemas
         function debugSubmission(submissionId) {
             const submission = pendingSubmissions.find(s => s.id === submissionId);
             if (!submission) {
-                alert('Submissão não encontrada!');
+                alert('❌ Submissão não encontrada!');
                 return;
             }
             
-            console.log('=== DEBUG SUBMISSION ===');
-            console.log('ID:', submission.id);
-            console.log('Título:', submission.title);
-            console.log('Autor:', submission.author);
-            console.log('Markdown length:', submission.markdown ? submission.markdown.length : 'undefined');
-            console.log('Content length:', submission.content ? submission.content.length : 'undefined');
-            console.log('Markdown preview:', submission.markdown ? submission.markdown.substring(0, 500) + '...' : 'undefined');
-            console.log('Full submission object:', submission);
+            console.log('🔍 ===== DEBUG SUBMISSION DETALHADO =====');
+            console.log('📄 ID:', submission.id);
+            console.log('📋 Título:', submission.title);
+            console.log('👤 Autor:', submission.author);
+            console.log('👥 Autores Adicionais:', submission.additionalAuthors || 'nenhum');
+            console.log('📂 Categoria:', submission.category);
+            console.log('🏷️ Tags:', submission.tags || 'nenhuma');
+            console.log('📝 Notas:', submission.notes || 'nenhuma');
+            console.log('⏰ Timestamp:', submission.timestamp);
+            console.log('📊 Status:', submission.status || 'pending');
             
-            // Mostrar informações na tela
-            alert(`DEBUG INFO:
-ID: ${submission.id}
-Título: ${submission.title}
-Autor: ${submission.author}
-Markdown Length: ${submission.markdown ? submission.markdown.length : 'undefined'}
-Content Length: ${submission.content ? submission.content.length : 'undefined'}
-Notas: ${submission.notes || 'nenhuma'}
+            // Verificar markdown
+            console.log('📄 ANÁLISE DO MARKDOWN:');
+            console.log('- Markdown length:', submission.markdown ? submission.markdown.length : 'UNDEFINED');
+            console.log('- Content length:', submission.content ? submission.content.length : 'UNDEFINED');
+            console.log('- Markdown exists:', !!submission.markdown);
+            console.log('- Content exists:', !!submission.content);
+            
+            if (submission.markdown) {
+                console.log('- Primeiros 300 chars do markdown:');
+                console.log(submission.markdown.substring(0, 300) + '...');
+                
+                console.log('- Últimos 300 chars do markdown:');
+                console.log('...' + submission.markdown.substring(submission.markdown.length - 300));
+                
+                // Verificar se contém seções importantes
+                console.log('- Contém "Referências":', submission.markdown.includes('Referências'));
+                console.log('- Contém tabelas (|):', submission.markdown.includes('|'));
+                console.log('- Contém headings (##):', submission.markdown.includes('##'));
+                console.log('- Número de linhas:', submission.markdown.split('\n').length);
+            }
+            
+            console.log('🔧 OBJETO COMPLETO:');
+            console.log(submission);
+            console.log('🔍 =======================================');
+            
+            // Teste de processamento
+            if (submission.markdown) {
+                console.log('🧪 TESTE DE PROCESSAMENTO:');
+                const processed = parseMarkdown(submission.markdown, true);
+                console.log('- Resultado length:', processed.length);
+                console.log('- Primeiros 200 chars processados:', processed.substring(0, 200) + '...');
+            }
+            
+            // Mostrar informações na tela de forma mais organizada
+            const debugInfo = `
+🔍 DEBUG SUBMISSION #${submission.id}
 
-Veja o console para mais detalhes.`);
+📋 INFORMAÇÕES BÁSICAS:
+• Título: ${submission.title}
+• Autor: ${submission.author}
+• Categoria: ${submission.category}
+• Data: ${new Date(submission.timestamp).toLocaleString('pt-BR')}
+
+📄 ANÁLISE DO CONTEÚDO:
+• Markdown existe: ${!!submission.markdown ? '✅ SIM' : '❌ NÃO'}
+• Content existe: ${!!submission.content ? '✅ SIM' : '❌ NÃO'}
+• Tamanho markdown: ${submission.markdown ? submission.markdown.length + ' caracteres' : 'N/A'}
+• Número de linhas: ${submission.markdown ? submission.markdown.split('\n').length : 'N/A'}
+
+📝 ELEMENTOS DETECTADOS:
+• Referências: ${submission.markdown && submission.markdown.includes('Referências') ? '✅' : '❌'}
+• Tabelas: ${submission.markdown && submission.markdown.includes('|') ? '✅' : '❌'}
+• Seções (##): ${submission.markdown && submission.markdown.includes('##') ? '✅' : '❌'}
+
+💡 PRÓXIMOS PASSOS:
+${!submission.markdown ? 
+    '⚠️ PROBLEMA: Markdown não encontrado! Verifique se os dados foram salvos corretamente.' : 
+    '✅ Markdown presente. Se o preview não funcionar, pode ser um problema de processamento.'
+}
+
+Veja o console do navegador (F12) para detalhes completos.
+            `;
+            
+            alert(debugInfo);
         }
         
         // Função principal de toggle de likes
