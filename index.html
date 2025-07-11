@@ -1454,7 +1454,7 @@ Seu artigo aqui..."></textarea> </div> <div class="form-group"> <label for="arti
     let pendingSubmissions = []; 
     let approvedArticles = [];
     let submissionIdCounter = 1; 
-    let articleIdCounter = 2;
+    let articleIdCounter = 5;
     let currentPreviewSubmission = null;
     
     // Carregar dados salvos ao iniciar
@@ -1557,36 +1557,7 @@ Seu artigo aqui..."></textarea> </div> <div class="form-group"> <label for="arti
     // FUNÇÃO PARA CRIAR ARTIGOS PADRÃO
     function createDefaultArticles() {
         const defaultArticles = [
-            {
-                id: 1,
-                title: "A Revolução Silenciosa da Epistemologia Participativa: Repensando o Conhecimento na Era da IA",
-                author: "Bruno Francisco Prado Rocha",
-                category: "Epistemologia",
-                readTime: "15 min de leitura",
-                abstract: "Este artigo examina como a inteligência artificial está facilitando uma transformação epistemológica fundamental, permitindo que pesquisadores amadores contribuam significativamente para o avanço científico.",
-                content: `A ciência sempre foi território de uma elite intelectual altamente especializada. Mas e se pudéssemos democratizar não apenas o acesso ao conhecimento, mas também sua produção? A epistemologia participativa emerge como uma resposta
-                content: `A ciência sempre foi território de uma elite intelectual altamente especializada. Mas e se pudéssemos democratizar não apenas o acesso ao conhecimento, mas também sua produção? A epistemologia participativa emerge como uma resposta a esta provocação, sustentada pelo poder transformador da inteligência artificial.
-
-Thomas Kuhn, em sua obra seminal "A Estrutura das Revoluções Científicas" (1962), demonstrou que o progresso científico não é linear, mas ocorre através de mudanças paradigmáticas. Argumentamos que estamos vivenciando uma dessas mudanças: a transição de uma epistemologia hierárquica para uma participativa.
-
-## 1. Fundamentação Teórica: Da Hierarquia à Participação
-
-### 1.1 O Paradigma Kuhniano Revisitado
-
-Kuhn identificou que revoluções científicas ocorrem quando anomalias se acumulam dentro de um paradigma dominante, forçando a comunidade científica a adotar um novo framework conceptual. A epistemologia participativa representa uma dessas mudanças paradigmáticas, onde a "anomalia" é a crescente democratização do acesso a ferramentas de pesquisa avançadas.
-
-## Referências
-
-1. Clark, A., & Chalmers, D. (1998). The Extended Mind. Analysis, 58(1), 7-19.
-2. Kuhn, T. (1962). The Structure of Scientific Revolutions. University of Chicago Press.`,
-                   tags: ["epistemologia", "IA", "ciência"],
-                   publishedAt: new Date().toISOString(),
-                   likes: 0,
-                   comments: 0,
-                   views: 1
-               }
-           ];
-           
+            { id: 1, title: "A Revolução Silenciosa da Epistemologia Participativa: Repensando o Conhecimento na Era da IA", author: "Bruno Francisco Prado Rocha", category: "Epistemologia", readTime: "15 min de leitura", abstract: "Este artigo examina como a inteligência artificial está facilitando uma transformação epistemológica fundamental, permitindo que pesquisadores amadores contribuam significativamente para o avanço científico.", content: `A ciência sempre foi território de uma elite intelectual altamente especializada. Mas e se pudéssemos democratizar não apenas o acesso ao conhecimento, mas também sua produção? A epistemologia participativa emerge como uma resposta a esta provocação, sustentada pelo poder transformador da inteligência artificial. Thomas Kuhn, em sua obra seminal "A Estrutura das Revoluções Científicas" (1962), demonstrou que o progresso científico não é linear, mas ocorre através de mudanças paradigmáticas. Argumentamos que estamos vivenciando uma dessas mudanças: a transição de uma epistemologia hierárquica para uma participativa. ## 1. Fundamentação Teórica: Da Hierarquia à Participação ### 1.1 O Paradigma Kuhniano Revisitado Kuhn identificou que revoluções científicas ocorrem quando anomalias se acumulam dentro de um paradigma dominante, forçando a comunidade científica a adotar um novo framework conceptual. A epistemologia participativa representa uma dessas mudanças paradigmáticas, onde a "anomalia" é a crescente democratização do acesso a ferramentas de pesquisa avançadas. ## Referências 1. Clark, A., & Chalmers, D. (1998). The Extended Mind. Analysis, 58(1), 7-19. 2. Kuhn, T. (1962). The Structure of Scientific Revolutions. University of Chicago Press.`, tags: ["epistemologia", "IA", "ciência"], publishedAt: new Date().toISOString(), likes: 0, comments: 0, views: 1 }, { id: 2, title: "Neuroplasticidade e Livre Arbítrio: Uma Análise Filosófica das Descobertas Neurocientíficas", author: "Bruno Francisco Prado Rocha", category: "Filosofia da Mente", readTime: "12 min de leitura", abstract: "Investigamos como as descobertas sobre neuroplasticidade impactam nossa compreensão filosófica do livre arbítrio e da responsabilidade moral.", content: `A neuroplasticidade, capacidade do cérebro de se reorganizar estrutural e funcionalmente, emerge como um dos fenômenos mais fascinantes da neurociência contemporânea. Mas quais são suas implicações para questões filosóficas fundamentais como o livre arbítrio? ## 1. Neuroplasticidade: Fundamentos Científicos A neuroplasticidade manifesta-se em múltiplos níveis: desde alterações sinápticas até reorganização cortical. Estudos demonstram que experiências, aprendizado e até mesmo pensamentos podem literalmente remodelar o cérebro. ## 2. Implicações Filosóficas Se o cérebro é constantemente remodelado pela experiência, isso sugere que nossa "natureza" não é fixa, mas dinâmica. Isso fortalece ou enfraquece argumentos sobre livre arbítrio? ## Referências 1. Doidge, N. (2007). The Brain That Changes Itself. Penguin Books. 2. Pascual-Leone, A. (2005). The plastic human brain cortex. Annual Review of Neuroscience, 28, 377-401.`, tags: ["neuroplasticidade", "livre-arbítrio", "filosofia da mente"], publishedAt: "2024-12-15T10:00:00Z", likes: 3, comments: 1, views: 45 }, { id: 3, title: "O Problema da Demarcação em Tempos de IA: Repensando Popper na Era Digital", author: "Bruno Francisco Prado Rocha", category: "Filosofia da Ciência", readTime: "18 min de leitura", abstract: "Uma reavaliação do critério de falsificabilidade de Popper considerando os desafios epistemológicos impostos pela inteligência artificial e machine learning.", content: `Karl Popper propôs a falsificabilidade como critério de demarcação entre ciência e não-ciência. Mas como esse critério se aplica em uma era onde algoritmos de IA fazem predições sem teorias explícitas? ## 1. O Critério de Popper Revisitado Popper argumentou que uma teoria é científica se e somente se for falsificável. Esse critério visava distinguir ciência de pseudociência, mas a IA desafia essa dicotomia. ## 2. Machine Learning e Conhecimento Científico Algoritmos de deep learning produzem conhecimento útil sem teorias explícitas. Eles são "caixas-pretas" que funcionam, mas não sabemos exatamente como ou por quê. ## 3. Novo Framework Epistemológico Propomos critérios adicionais: reprodutibilidade computacional, transparência algorítmica e validação empírica distribuída. ## Referências 1. Popper, K. (1959). The Logic of Scientific Discovery. Hutchinson. 2. Rudin, C. (2019). Stop explaining black box machine learning models. Nature Machine Intelligence, 1(5), 206-215.`, tags: ["popper", "falsificabilidade", "IA", "filosofia da ciência"], publishedAt: "2024-12-10T14:30:00Z", likes: 7, comments: 2, views: 78 }, { id: 4, title: "Cognição Estendida e Interfaces Cérebro-Computador: Redefinindo os Limites da Mente", author: "Bruno Francisco Prado Rocha", category: "Neurociência", readTime: "20 min de leitura", abstract: "Exploramos como as interfaces cérebro-computador validam empiricamente a teoria da cognição estendida de Clark e Chalmers, expandindo nossa concepção de mente.", content: `A teoria da cognição estendida propõe que processos cognitivos podem se estender além dos limites biológicos do cérebro. Interfaces cérebro-computador (BCIs) oferecem evidência empírica fascinante para esta proposição. ## 1. Cognição Estendida: Teoria e Evidências Clark e Chalmers (1998) argumentaram que ferramentas podem literalmente se tornar parte de nossos processos cognitivos. BCIs tornam essa extensão mais literal do que metafórica. ## 2. Interfaces Cérebro-Computador: Estado da Arte Tecnologias como Neuralink demonstram integração direta entre cérebro e sistemas computacionais, criando híbridos mente-máquina. ## 3. Implicações Filosóficas Se a mente pode se estender através de BCIs, onde exatamente termina o "eu" e começa a tecnologia? Essas questões desafiam concepções tradicionais de identidade pessoal. ## 4. Considerações Éticas A cognição estendida via BCIs levanta questões sobre privacidade mental, autenticidade do self e equidade no acesso cognitivo. ## Referências 1. Clark, A., & Chalmers, D. (1998). The Extended Mind. Analysis, 58(1), 7-19. 2. Ienca, M., & Andorno, R. (2017). Towards new human rights in the age of neuroscience and neurotechnology. Life Sciences, Society and Policy, 13(1), 5. 3. Reardon, S. (2019). Brain implants allow paralysed people to control computer cursors. Nature, 565(7738), 142-143.`, tags: ["cognição estendida", "BCI", "interfaces", "neurociência"], publishedAt: "2024-12-05T09:15:00Z", likes: 12, comments: 4, views: 156 } ]; approvedArticles = defaultArticles; saveData(); }           
            approvedArticles = defaultArticles;
            saveData();
        }
@@ -2551,3 +2522,4 @@ Kuhn identificou que revoluções científicas ocorrem quando anomalias se acumu
    </script>
 </body>
 </html>
+
