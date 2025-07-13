@@ -1,4 +1,43 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -280,14 +319,13 @@
             border: none;
             color: white;
             font-size: 2em;
-            cursor: pointer;
+            cursor: not-allowed;
             box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
             transition: all 0.3s ease;
         }
 
-        .add-post:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 30px rgba(231, 76, 60, 0.4);
+        .add-post[disabled] {
+            opacity: 0.6;
         }
 
         .article-actions {
@@ -457,6 +495,7 @@
             margin-bottom: 8px;
             font-weight: 600;
             color: #2c3e50;
+            font-size: 1em;
         }
 
         .form-group input, .form-group textarea, .form-group select {
@@ -470,6 +509,11 @@
         .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
             outline: none;
             border-color: #3498db;
+        }
+
+        .form-group input:invalid,
+        .form-group textarea:invalid {
+            border-color: #e74c3c;
         }
 
         .submit-btn {
@@ -955,233 +999,245 @@
             transform: translateY(-1px);
         }
 
-	.moderator-mode {
-  	  position: fixed;
-    	bottom: 30px;
-    	left: 30px;
-    	background: linear-gradient(45deg, #8e44ad, #9b59b6);
-   	 color: white;
-   	 padding: 10px 15px;
-   	 border-radius: 25px;
-   	 border: none;
-   	 cursor: pointer;
-   	 box-shadow: 0 4px 15px rgba(142, 68, 173, 0.3);
-   	 transition: all 0.3s ease;
-   	 font-size: 0.9em;
-   	 z-index: 999;
-	}
+        .moderator-mode {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: linear-gradient(45deg, #8e44ad, #9b59b6);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.3);
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            z-index: 999;
+        }
 
-       .moderator-mode:hover {
-           transform: scale(1.05);
-           box-shadow: 0 6px 20px rgba(142, 68, 173, 0.4);
-       }
+        .moderator-mode:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(142, 68, 173, 0.4);
+        }
 
-       .modal {
-           display: none;
-           position: fixed;
-           z-index: 9999;
-           left: 0;
-           top: 0;
-           width: 100%;
-           height: 100%;
-           background-color: rgba(0, 0, 0, 0.5);
-           backdrop-filter: blur(5px);
-       }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
 
-       .modal-content {
-           background-color: white;
-           margin: 3% auto;
-           padding: 30px;
-           border-radius: 15px;
-           width: 90%;
-           max-width: 900px;
-           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-           max-height: 90vh;
-           overflow-y: auto;
-       }
+        .modal-content {
+            background-color: white;
+            margin: 3% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 900px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
 
-       .close {
-           color: #aaa;
-           float: right;
-           font-size: 28px;
-           font-weight: bold;
-           cursor: pointer;
-           line-height: 1;
-       }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
 
-       .close:hover {
-           color: #000;
-       }
+        .close:hover {
+            color: #000;
+        }
 
-       .rendered-content h1 {
-           font-size: 2.2em;
-           color: #2c3e50;
-           margin: 30px 0 20px 0;
-           line-height: 1.3;
-           border-bottom: 3px solid #3498db;
-           padding-bottom: 10px;
-       }
+        .rendered-content h1 {
+            font-size: 2.2em;
+            color: #2c3e50;
+            margin: 30px 0 20px 0;
+            line-height: 1.3;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
 
-       .rendered-content h2 {
-           color: #2c3e50;
-           font-size: 1.6em;
-           margin: 25px 0 15px 0;
-           padding-bottom: 10px;
-           border-bottom: 2px solid #3498db;
-       }
+        .rendered-content h2 {
+            color: #2c3e50;
+            font-size: 1.6em;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
 
-       .rendered-content h3 {
-           color: #34495e;
-           font-size: 1.3em;
-           margin: 20px 0 10px 0;
-           font-weight: 600;
-       }
+        .rendered-content h3 {
+            color: #34495e;
+            font-size: 1.3em;
+            margin: 20px 0 10px 0;
+            font-weight: 600;
+        }
 
-       .rendered-content h4 {
-           color: #34495e;
-           font-size: 1.1em;
-           margin: 18px 0 8px 0;
-           font-weight: 600;
-       }
+        .rendered-content h4 {
+            color: #34495e;
+            font-size: 1.1em;
+            margin: 18px 0 8px 0;
+            font-weight: 600;
+        }
 
-       .rendered-content p {
-           margin: 15px 0;
-           line-height: 1.6;
-           text-align: justify;
-           color: #333;
-       }
+        .rendered-content p {
+            margin: 15px 0;
+            line-height: 1.6;
+            text-align: justify;
+            color: #333;
+        }
 
-       .rendered-content strong {
-           color: #2c3e50;
-           font-weight: 600;
-       }
+        .rendered-content strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
 
-       .rendered-content em {
-           color: #555;
-           font-style: italic;
-       }
+        .rendered-content em {
+            color: #555;
+            font-style: italic;
+        }
 
-       .rendered-content blockquote {
-           border-left: 4px solid #3498db;
-           padding: 15px 20px;
-           margin: 20px 0;
-           background: #f8f9fa;
-           border-radius: 5px;
-           color: #666;
-           font-style: italic;
-       }
+        .rendered-content blockquote {
+            border-left: 4px solid #3498db;
+            padding: 15px 20px;
+            margin: 20px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            color: #666;
+            font-style: italic;
+        }
 
-       .rendered-content ul, .rendered-content ol {
-           margin: 15px 0;
-           padding-left: 25px;
-           line-height: 1.6;
-       }
+        .rendered-content ul, .rendered-content ol {
+            margin: 15px 0;
+            padding-left: 25px;
+            line-height: 1.6;
+        }
 
-       .rendered-content li {
-           margin-bottom: 8px;
-       }
+        .rendered-content li {
+            margin-bottom: 8px;
+        }
 
-       .rendered-content table {
-           width: 100%;
-           border-collapse: collapse;
-           margin: 20px 0;
-           background: #fff;
-           border-radius: 8px;
-           overflow: hidden;
-           box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-       }
+        .rendered-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
 
-       .rendered-content table th,
-       .rendered-content table td {
-           padding: 12px 15px;
-           text-align: left;
-           border-bottom: 1px solid #eee;
-       }
+        .rendered-content table th,
+        .rendered-content table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
 
-       .rendered-content table th {
-           background: #f8f9fa;
-           font-weight: 600;
-           color: #2c3e50;
-       }
+        .rendered-content table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
 
-       .rendered-content table tr:last-child td {
-           border-bottom: none;
-       }
+        .rendered-content table tr:last-child td {
+            border-bottom: none;
+        }
 
-       @media (max-width: 768px) {
-           .container {
-               grid-template-columns: 1fr;
-               padding: 10px;
-           }
-           
-           .main-content {
-               padding: 20px;
-           }
-           
-           .header h1 {
-               font-size: 2em;
-           }
-           
-           .add-post {
-               bottom: 20px;
-               right: 20px;
-           }
+        button[aria-label] {
+            outline: none;
+        }
 
-           .preview-modal-content {
-               width: 98%;
-               height: 98vh;
-               margin: 1vh auto;
-           }
+        button:focus {
+            outline: 2px solid #3498db;
+            outline-offset: 2px;
+        }
 
-           .preview-content {
-               padding: 20px;
-           }
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 10px;
+            }
 
-           .preview-actions {
-               padding: 15px 20px;
-               flex-wrap: wrap;
-               justify-content: center;
-           }
+            .main-content {
+                padding: 20px;
+            }
 
-           .preview-btn {
-               min-width: 100px;
-               font-size: 0.9em;
-               padding: 10px 16px;
-           }
-       }
-   </style>
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .add-post {
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .preview-modal-content {
+                width: 98%;
+                height: 98vh;
+                margin: 1vh auto;
+            }
+
+            .preview-content {
+                padding: 20px;
+            }
+
+            .preview-actions {
+                padding: 15px 20px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .preview-btn {
+                min-width: 100px;
+                font-size: 0.9em;
+                padding: 10px 16px;
+            }
+        }
+    </style>
 </head>
 
 <body>
-   <div class="container">
-       <main class="main-content">
-           <header class="header">
-               <h1>Realidade Emergente</h1>
-               <p>Filosofia, Ciência e Epistemologia Participativa</p>
-           </header>
+    <div class="container">
+        <main class="main-content">
+            <header class="header">
+                <h1>Realidade Emergente</h1>
+                <p>Filosofia, Ciência e Epistemologia Participativa</p>
+            </header>
 
-           <!-- Container para artigos dinâmicos -->
-           <div id="articles-container">
-               <!-- Artigos serão inseridos aqui dinamicamente -->
-           </div>
+            <!-- Container para artigos dinâmicos -->
+            <div id="articles-container">
+                <div style="text-align: center; color: #7f8c8d; padding: 40px; font-style: italic;">
+                    <h4 style="color: #34495e; margin-bottom: 15px;">Nenhum artigo publicado ainda</h4>
+                    <p>Submeta seu artigo ou ideia de pesquisa para começar a construir nosso banco de conhecimento colaborativo!</p>
+                </div>
+            </div>
 
-           <!-- Seção de Guia para Criação de Artigos com IA -->
-           <div class="ai-helper-section">
-               <h3>🤖 Crie Artigos Acadêmicos com IA - Guia Completo</h3>
-               
-               <div class="ai-tips">
-                   <h4>🎯 Como Usar IA para Criar Artigos para Este Blog</h4>
-                   <p>A epistemologia participativa em ação! Use inteligência artificial para criar artigos acadêmicos rigorosos e prontos para publicação. Aqui está tudo que você precisa saber:</p>
-               </div>
+            <!-- Seção de Guia para Criação de Artigos com IA -->
+            <div class="ai-helper-section">
+                <h3>🤖 Crie Artigos Acadêmicos com IA - Guia Completo</h3>
 
-               <div class="ai-tips">
-                   <h4>📋 Prompt Padrão Pronto para Copiar</h4>
-                   <p>Copie o prompt abaixo e cole na sua IA preferida (Claude, ChatGPT, Gemini, Deepseek, Manus, etc.) para criar artigos compatíveis com o blog:</p>
-               </div>
+                <div class="ai-tips">
+                    <h4>🎯 Como Usar IA para Criar Artigos para Este Blog</h4>
+                    <p>A epistemologia participativa em ação! Use inteligência artificial para criar artigos acadêmicos rigorosos e prontos para publicação. Aqui está tudo que você precisa saber:</p>
+                </div>
 
-               <div class="prompt-box">
-                   <button class="copy-prompt-btn" onclick="copyPrompt()">📋 Copiar</button>
-                   <div id="ai-prompt">
+                <div class="ai-tips">
+                    <h4>📋 Prompt Padrão Pronto para Copiar</h4>
+                    <p>Copie o prompt abaixo e cole na sua IA preferida (Claude, ChatGPT, Gemini, Deepseek, Manus, etc.) para criar artigos compatíveis com o blog:</p>
+                </div>
+
+                <div class="prompt-box">
+                    <button class="copy-prompt-btn" onclick="copyPrompt()" aria-label="Copiar prompt para criação de artigos">📋 Copiar</button>
+                    <div id="ai-prompt">
 **INSTRUÇÃO PARA CRIAÇÃO DE ARTIGO ACADÊMICO**
 
 Você é um pesquisador especializado criando um artigo para o blog "Realidade Emergente" - um espaço dedicado à epistemologia participativa, filosofia da mente, neurociência e filosofia da ciência.
@@ -1191,8 +1247,8 @@ Você é um pesquisador especializado criando um artigo para o blog "Realidade E
 ```markdown
 # [Título do Artigo]
 
-**Categoria:** [Epistemologia/Filosofia da Mente/Filosofia da Ciência/Neurociência/Interdisciplinar]  
-**Tempo de leitura:** [X min]  
+**Categoria:** [Epistemologia/Filosofia da Mente/Filosofia da Ciência/Neurociência/Interdisciplinar]
+**Tempo de leitura:** [X min]
 **Autor:** [Autor principal]
 **Coautores:** [Outros autores, se houver - separados por vírgula]
 
@@ -1232,1494 +1288,622 @@ Você é um pesquisador especializado criando um artigo para o blog "Realidade E
 ## Referências
 1. [Formato APA completo]
 2. [Mínimo 15 referências acadêmicas]
-REQUISITOS ESPECÍFICOS:
+```
 
-Rigor acadêmico: use citações reais e precisas
-Interdisciplinaridade: conecte filosofia com evidências empíricas
-Extensão: 3.000-5.000 palavras
-Tom: acadêmico mas acessível
-Foco: epistemologia participativa, IA, consciência, ou filosofia da ciência
-Inclua pelo menos 1 tabela (usando formato markdown correto) e 1 seção de limitações
-Use evidências empíricas quando possível
-Se houver múltiplos autores, liste em "Coautores"
+**REQUISITOS ESPECÍFICOS:**
 
-TÓPICOS SUGERIDOS:
+- Rigor acadêmico: use citações reais e precisas
+- Interdisciplinaridade: conecte filosofia com evidências empíricas
+- Extensão: 3.000-5.000 palavras
+- Tom: acadêmico mas acessível
+- Foco: epistemologia participativa, IA, consciência, ou filosofia da ciência
+- Inclua pelo menos 1 tabela (usando formato markdown correto) e 1 seção de limitações
+- Use evidências empíricas quando possível
+- Se houver múltiplos autores, liste em "Coautores"
 
-IA e transformação epistemológica
-Neurociência da consciência e filosofia
-Ciência aberta e democratização do conhecimento
-Filosofia experimental e evidências empíricas
-Cognição estendida e tecnologia
-Ética da IA e moralidade
-Realismo científico contemporâneo
+**TÓPICOS SUGERIDOS:**
 
-IMPORTANTE PARA TABELAS:
+- IA e transformação epistemológica
+- Neurociência da consciência e filosofia
+- Ciência aberta e democratização do conhecimento
+- Filosofia experimental e evidências empíricas
+- Cognição estendida e tecnologia
+- Ética da IA e moralidade
+- Realismo científico contemporâneo
+
+**IMPORTANTE PARA TABELAS:**
 Use EXATAMENTE este formato para tabelas funcionarem corretamente:
+```
 | Cabeçalho 1 | Cabeçalho 2 | Cabeçalho 3 |
 |-------------|-------------|-------------|
 | Linha 1 Col 1 | Linha 1 Col 2 | Linha 1 Col 3 |
 | Linha 2 Col 1 | Linha 2 Col 2 | Linha 2 Col 3 |
+```
+
 Crie um artigo seguindo EXATAMENTE esta estrutura markdown. Seja rigoroso, original e cite fontes reais.
-</div>
-</div>
-            <div class="ai-tips">
-                <h4>🛠️ Instruções Passo a Passo</h4>
-                <ul>
-                    <li>Copie o prompt acima e cole na sua IA</li>
-                    <li>Adicione o tópico específico que deseja abordar</li>
-                    <li>A IA gerará um artigo em markdown pronto para uso</li>
-                    <li>Revise o conteúdo e faça ajustes se necessário</li>
-                    <li>Cole o resultado no formulário de criação abaixo</li>
-                </ul>
+                    </div>
+                </div>
+
+                <div class="ai-tips">
+                    <h4>🛠️ Instruções Passo a Passo</h4>
+                    <ul>
+                        <li>Copie o prompt acima e cole na sua IA</li>
+                        <li>Adicione o tópico específico que deseja abordar</li>
+                        <li>A IA gerará um artigo em markdown pronto para uso</li>
+                        <li>Revise o conteúdo e faça ajustes se necessário</li>
+                        <li>Submeta o arquivo .md ou cole o texto no formulário abaixo</li>
+                    </ul>
+                </div>
+
+                <div class="ai-tips">
+                    <h4>💡 Dicas Importantes</h4>
+                    <ul>
+                        <li>Use IAs como Claude-3, ChatGPT, Gemini, Deepseek ou Manus para melhores resultados</li>
+                        <li>Seja específico sobre o tema que deseja abordar</li>
+                        <li>Peça para verificar as citações e referências</li>
+                        <li>Solicite revisão da estrutura se algo estiver faltando</li>
+                        <li>O markdown facilita a formatação automática no blog</li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="ai-tips">
-                <h4>💡 Dicas Importantes</h4>
-                <ul>
-                    <li>Use IAs como Claude-3, ChatGPT, Gemini, Deepseek ou Manus para melhores resultados</li>
-                    <li>Seja específico sobre o tema que deseja abordar</li>
-                    <li>Peça para verificar as citações e referências</li>
-                    <li>Solicite revisão da estrutura se algo estiver faltando</li>
-                    <li>O markdown facilita a formatação automática no blog</li>
-                </ul>
-            </div>
-        </div>
+            <!-- Seção de Submissão de Artigos com Markdown -->
+            <div class="research-submission">
+                <h2 style="color: #2c3e50; margin-bottom: 20px; text-align: center;">📝 Submissão de Artigos Acadêmicos</h2>
+                <p style="text-align: center; color: #555; margin-bottom: 30px;">Compartilhe seu artigo criado com IA ou trabalho próprio usando um arquivo Markdown (.md) ou colando o texto diretamente!</p>
 
-        <!-- Seção de Submissão de Artigos com Markdown -->
-        <div class="research-submission">
-            <h2 style="color: #2c3e50; margin-bottom: 20px; text-align: center;">📝 Submissão de Artigos Acadêmicos</h2>
-            <p style="text-align: center; color: #555; margin-bottom: 30px;">Compartilhe seu artigo criado com IA ou trabalho próprio usando Markdown para formatação automática!</p>
-            
-            <div class="submission-form">
-                <h3 style="color: #667eea; margin-bottom: 20px;">✍️ Criar Artigo com Markdown</h3>
-                <form id="markdown-form">
-                    <div class="form-group">
-                        <label for="article-markdown">Cole seu artigo em Markdown:</label>
-                        <textarea id="article-markdown" rows="20" placeholder="Cole aqui o artigo criado pela IA em formato Markdown...
+                <div class="submission-form">
+                    <h3 style="color: #667eea; margin-bottom: 20px;">✍️ Criar Artigo com Markdown</h3>
+                    <form id="markdown-form">
+                        <div class="form-group">
+                            <label for="article-file">Carregar arquivo Markdown (.md):</label>
+                            <input type="file" id="article-file" accept=".md" aria-label="Carregar arquivo Markdown">
+                            <small style="color: #666; font-size: 0.9em;">Ou cole o texto Markdown abaixo</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="article-markdown">Cole seu artigo em Markdown (opcional):</label>
+                            <textarea id="article-markdown" rows="20" placeholder="Cole aqui o artigo criado pela IA em formato Markdown...
 Exemplo:
-Título do Artigo
-Categoria: Filosofia da Mente
-Tempo de leitura: 15 min
-Autor: Seu Nome
-Resumo
+# Título do Artigo
+**Categoria:** Filosofia da Mente
+**Tempo de leitura:** 15 min
+**Autor:** Seu Nome
+## Resumo
 Seu resumo aqui...
-Introdução
+## Introdução
 Seu artigo aqui..."></textarea>
-</div>
-<div class="form-group">
-<label for="article-category">Categoria Principal:</label>
-<select id="article-category">
-<option>Epistemologia</option>
-<option>Filosofia da Mente</option>
-<option>Filosofia da Ciência</option>
-<option>Neurociência</option>
-<option>Inteligência Artificial</option>
-<option>Interdisciplinar</option>
-</select>
-</div>
-<div class="form-group">
-<label for="article-tags">Tags/Palavras-chave:</label>
-<input type="text" id="article-tags" placeholder="IA, consciência, epistemologia, neurociência (separadas por vírgula)">
-</div>
-<div class="form-group">
-<label for="additional-authors">Autores Adicionais (opcional):</label>
-<input type="text" id="additional-authors" placeholder="Coautores separados por vírgula (ex: João Silva, Maria Santos)">
-<small style="color: #666; font-size: 0.9em;">Se houver mais de um autor, liste os demais aqui</small>
-</div>
-<div class="form-group">
-<label for="submission-notes">Notas sobre a submissão (opcional):</label>
-<textarea id="submission-notes" rows="3" placeholder="Processo de criação, IA utilizada, motivação para o artigo, etc."></textarea>
-<small style="color: #666; font-size: 0.9em;">Esta nota será incluída como primeiro comentário se o artigo for aprovado</small>
-</div>
-<button type="button" onclick="showPreview()" class="submit-btn" style="background: #f39c12; margin-right: 15px;">👁️ Ver Preview</button>
-<button type="submit" class="submit-btn">🚀 Submeter Artigo</button>
-</form>
-</div>
-            <div class="submission-form" style="margin-top: 30px;">
-                <h3 style="color: #27ae60; margin-bottom: 20px;">💡 Propor Ideia de Pesquisa</h3>
-                <form id="research-form">
-                    <div class="form-group">
-                        <label for="research-title">Título/Problema de Pesquisa:</label>
-                        <input type="text" id="research-title" placeholder="Ex: Impacto da IA na formação de crenças políticas em redes sociais">
-                    </div>
-                    <div class="form-group">
-                        <label for="research-field">Área/Campo:</label>
-                        <select id="research-field">
-                            <option>Filosofia da Mente</option>
-                            <option>Neurociência Cognitiva</option>
-                            <option>Epistemologia</option>
-                            <option>Filosofia da Ciência</option>
-                            <option>Psicologia Experimental</option>
-                            <option>Sociologia do Conhecimento</option>
-                            <option>Inteligência Artificial</option>
-                            <option>Interdisciplinar</option>
-                            <option>Outro</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="research-description">Descrição do Problema/Hipótese:</label>
-                        <textarea id="research-description" rows="4" placeholder="Descreva o problema que considera interessante investigar, possíveis hipóteses, ou questões que gostaria de explorar..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="research-methods">Possíveis Abordagens/Métodos:</label>
-                        <textarea id="research-methods" rows="3" placeholder="Que métodos ou abordagens poderiam ser úteis? (experimental, análise conceitual, revisão sistemática, etc.)"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="submitter-info">Seus dados (opcional):</label>
-                        <input type="text" id="submitter-info" placeholder="Nome, formação, instituição (se desejar compartilhar)">
-                    </div>
-                    <button type="submit" class="submit-btn">💡 Submeter Ideia</button>
-                </form>
-            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="article-category">Categoria Principal:</label>
+                            <select id="article-category" required>
+                                <option>Epistemologia</option>
+                                <option>Filosofia da Mente</option>
+                                <option>Filosofia da Ciência</option>
+                                <option>Neurociência</option>
+                                <option>Inteligência Artificial</option>
+                                <option>Interdisciplinar</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="article-tags">Tags/Palavras-chave:</label>
+                            <input type="text" id="article-tags" placeholder="IA, consciência, epistemologia, neurociência (separadas por vírgula)">
+                        </div>
+                        <div class="form-group">
+                            <label for="additional-authors">Autores Adicionais (opcional):</label>
+                            <input type="text" id="additional-authors" placeholder="Coautores separados por vírgula (ex: João Silva, Maria Santos)">
+                            <small style="color: #666; font-size: 0.9em;">Se houver mais de um autor, liste os demais aqui</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="submission-notes">Notas sobre a submissão (opcional):</label>
+                            <textarea id="submission-notes" rows="3" placeholder="Processo de criação, IA utilizada, motivação para o artigo, etc."></textarea>
+                            <small style="color: #666; font-size: 0.9em;">Esta nota será incluída como primeiro comentário se o artigo for aprovado</small>
+                        </div>
+                        <button type="button" onclick="showPreview()" class="submit-btn" style="background: #f39c12; margin-right: 15px;" aria-label="Visualizar artigo antes de submeter">👁️ Ver Preview</button>
+                        <button type="submit" class="submit-btn" aria-label="Submeter artigo para revisão">🚀 Submeter Artigo</button>
+                    </form>
+                </div>
 
-            <!-- Submissões da Comunidade -->
-            <div class="community-submissions">
-                <h3 style="color: #2c3e50; margin-bottom: 25px;">🌟 Contribuições da Comunidade</h3>
-                
-                <div id="community-content" style="text-align: center; color: #7f8c8d; padding: 40px; font-style: italic; background: #f8f9fa; border-radius: 12px;">
-                    <h4 style="color: #34495e; margin-bottom: 15px;">Em breve...</h4>
-                    <p>Este espaço será preenchido com as contribuições da comunidade.</p>
-                    <p>Seja o primeiro a submeter um artigo criado com IA ou uma ideia de pesquisa!</p>
-                    <p style="margin-top: 20px; font-size: 0.9em;">
-                        <strong>🎯 Objetivo:</strong> Criar um banco colaborativo de artigos e pesquisas para acelerar o desenvolvimento científico através da epistemologia participativa.
-                    </p>
+                <div class="submission-form" style="margin-top: 30px;">
+                    <h3 style="color: #27ae60; margin-bottom: 20px;">💡 Propor Ideia de Pesquisa</h3>
+                    <form id="research-form">
+                        <div class="form-group">
+                            <label for="research-title">Título/Problema de Pesquisa:</label>
+                            <input type="text" id="research-title" placeholder="Ex: Impacto da IA na formação de crenças políticas em redes sociais" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="research-field">Área/Campo:</label>
+                            <select id="research-field" required>
+                                <option>Filosofia da Mente</option>
+                                <option>Neurociência Cognitiva</option>
+                                <option>Epistemologia</option>
+                                <option>Filosofia da Ciência</option>
+                                <option>Psicologia Experimental</option>
+                                <option>Sociologia do Conhecimento</option>
+                                <option>Inteligência Artificial</option>
+                                <option>Interdisciplinar</option>
+                                <option>Outro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="research-description">Descrição do Problema/Hipótese:</label>
+                            <textarea id="research-description" rows="4" placeholder="Descreva o problema que considera interessante investigar, possíveis hipóteses, ou questões que gostaria de explorar..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="research-methods">Possíveis Abordagens/Métodos:</label>
+                            <textarea id="research-methods" rows="3" placeholder="Que métodos ou abordagens poderiam ser úteis? (experimental, análise conceitual, revisão sistemática, etc.)"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="submitter-info">Seus dados (opcional):</label>
+                            <input type="text" id="submitter-info" placeholder="Nome, formação, instituição (se desejar compartilhar)">
+                        </div>
+                        <button type="submit" class="submit-btn" aria-label="Submeter ideia de pesquisa">💡 Submeter Ideia</button>
+                    </form>
+                </div>
+
+                <!-- Submissões da Comunidade -->
+                <div class="community-submissions">
+                    <h3 style="color: #2c3e50; margin-bottom: 25px;">🌟 Contribuições da Comunidade</h3>
+                    <div id="community-content" style="text-align: center; color: #7f8c8d; padding: 40px; font-style: italic; background: #f8f9fa; border-radius: 12px;">
+                        <h4 style="color: #34495e; margin-bottom: 15px;">Em breve...</h4>
+                        <p>Este espaço será preenchido com as contribuições da comunidade.</p>
+                        <p>Seja o primeiro a submeter um artigo criado com IA ou uma ideia de pesquisa!</p>
+                        <p style="margin-top: 20px; font-size: 0.9em;">
+                            <strong>🎯 Objetivo:</strong> Criar um banco colaborativo de artigos e pesquisas para acelerar o desenvolvimento científico através da epistemologia participativa.
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
 
-    <aside class="sidebar">
-        <div class="author-section">
-            <div class="author-avatar">BR</div>
-            
-            <div class="author-welcome">
-                <h3>Boas-vindas</h3>
-                <p>Olá! Sou <strong>Bruno Francisco Prado Rocha</strong>, e é uma honra recebê-lo aqui.</p>
-                <div class="author-quote">
-                    "Quem aqui entra, faz-me uma honra com sua participação e atenção dedicada à minha proposta, porque, em verdade, o conhecimento que ambos almejamos não é luxo acadêmico, mas ferramenta de agência."
+        <aside class="sidebar">
+            <div class="author-section">
+                <div class="author-avatar">BR</div>
+                <div class="author-welcome">
+                    <h3>Boas-vindas</h3>
+                    <p>Olá! Sou <strong>Bruno Francisco Prado Rocha</strong>, e é uma honra recebê-lo aqui.</p>
+                    <div class="author-quote">
+                        "Quem aqui entra, faz-me uma honra com sua participação e atenção dedicada à minha proposta, porque, em verdade, o conhecimento que ambos almejamos não é luxo acadêmico, mas ferramenta de agência."
+                    </div>
                 </div>
+                <p><em>Pesquisador amador e entusiasta da <strong>epistemologia participativa</strong> - a ideia de que a IA pode democratizar o rigor científico, permitindo que mentes curiosas de todas as origens contribuam para o avanço do conhecimento humano.</em></p>
+                <p><em>Acredito que estamos no limiar de uma revolução epistemológica: onde a investigação rigorosa deixa de ser privilégio acadêmico e se torna ferramenta acessível a todos os que desejam compreender melhor nossa realidade.</em></p>
+                <p><em>Este espaço é um laboratório de ideias - onde filosofia encontra neurociência, onde questões antigas ganham perspectivas contemporâneas, e onde cada visitante pode participar da grande conversa sobre quem somos e para onde vamos.</em></p>
+                <p><em>Não busco competir com a academia tradicional, mas sim complementá-la, criando pontes entre curiosidade humana e método científico para formação de algo similar a um banco de ideias para eventualmente ser utilizado pela ciência formal, à qual reconheço sua fundamental importância.</em></p>
+                <p><em>Este espaço é dedicado àqueles que acreditam que o conhecimento transcende muros institucionais e que, com as ferramentas certas, cada mente inquisitiva pode contribuir para desvelar os mistérios de nossa realidade emergente.</em></p>
+                <p><em>Espero contar com sua singular contribuição e que mais blogs como este se espalhem pela rede para ampliar esse delicioso diálogo epistêmico.</em></p>
             </div>
-            
-            <p><em>Pesquisador amador e entusiasta da <strong>epistemologia participativa</strong> - a ideia de que a IA pode democratizar o rigor científico, permitindo que mentes curiosas de todas as origens contribuam para o avanço do conhecimento humano.</em></p>
-            
-            <p><em>Acredito que estamos no limiar de uma revolução epistemológica: onde a investigação rigorosa deixa de ser privilégio acadêmico e se torna ferramenta acessível a todos os que desejam compreender melhor nossa realidade.</em></p>
-            
-            <p><em>Este espaço é um laboratório de ideias - onde filosofia encontra neurociência, onde questões antigas ganham perspectivas contemporâneas, e onde cada visitante pode participar da grande conversa sobre quem somos e para onde vamos.</em></p>
-            
-            <p><em>Não busco competir com a academia tradicional, mas sim complementá-la, criando pontes entre curiosidade humana e método científico para formação de algo similar a um banco de ideias para eventualmente ser utilizado pela ciência formal, à qual reconheço sua fundamental importância.</em></p>
-            
-            <p><em>Este espaço é dedicado àqueles que acreditam que o conhecimento transcende muros institucionais e que, com as ferramentas certas, cada mente inquisitiva pode contribuir para desvelar os mistérios de nossa realidade emergente.</em></p>
-            
-            <p><em>Espero contar com sua singular contribuição e que mais blog como este se espalhem pela rede para que ampliar esse delicioso diálogo epistêmico.</em></p>
-        </div>
 
-        <div class="recent-posts">
-            <h3>Artigos Recentes</h3>
-            <ul id="recent-posts-list">
-                <li><a href="#" onclick="scrollToFirstArticle()">A Revolução da Epistemologia Participativa</a></li>
-            </ul>
-        </div>
-
-        <div class="categories">
-            <h3>Categorias</h3>
-            <ul>
-                <li><a href="#" onclick="filterByCategory('Epistemologia')">Epistemologia (<span id="epistemologia-count">1</span>)</a></li>
-                <li><a href="#" onclick="filterByCategory('Filosofia da Mente')">Filosofia da Mente (<span id="filosofia-mente-count">0</span>)</a></li>
-                <li><a href="#" onclick="filterByCategory('Filosofia da Ciência')">Filosofia da Ciência (<span id="filosofia-ciencia-count">0</span>)</a></li>
-                <li><a href="#" onclick="filterByCategory('Neurociência')">Neurociência (<span id="neurociencia-count">0</span>)</a></li>
-                <li><a href="#" onclick="filterByCategory('Inteligência Artificial')">Inteligência Artificial (<span id="ia-count">0</span>)</a></li>
-                <li><a href="#" onclick="showAllArticles()">Todos os Artigos (<span id="total-articles-count">1</span>)</a></li>
-            </ul>
-        </div>
-    </aside>
-</div>
-
-<button class="add-post" onclick="openCreateModal()">+</button>
-<button class="moderator-mode" onclick="openModeratorModal()">🛡️ Moderação</button>
-
-<div class="notification" id="notification"></div>
-
-<!-- Modal para criação de artigos -->
-<div id="createModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeCreateModal()">&times;</span>
-        <h2 style="color: #2c3e50; margin-bottom: 20px;">✍️ Criar Novo Artigo</h2>
-        <p style="color: #666; margin-bottom: 20px;">Use o guia da IA acima para criar artigos ou escreva diretamente aqui.</p>
-        <div style="text-align: center; padding: 40px; color: #7f8c8d;">
-            <p>🚧 Funcionalidade em desenvolvimento</p>
-            <p>Por enquanto, use o formulário de submissão com Markdown na seção principal.</p>
-            <button onclick="closeCreateModal()" style="margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">Entendi</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para moderação -->
-<div id="moderatorModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeModeratorModal()">&times;</span>
-        <h2 style="color: #2c3e50; margin-bottom: 20px;">🛡️ Painel de Moderação</h2>
-        <div id="moderator-content">
-            <div style="margin-bottom: 20px;">
-                <label for="mod-password" style="display: block; margin-bottom: 8px; font-weight: 600;">Senha de Moderação:</label>
-                <input type="password" id="mod-password" placeholder="Digite a senha de moderação" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
-                <button onclick="authenticateModerator()" style="margin-top: 10px; padding: 10px 20px; background: #8e44ad; color: white; border: none; border-radius: 5px; cursor: pointer;">Entrar</button>
+            <div class="recent-posts">
+                <h3>Artigos Recentes</h3>
+                <ul id="recent-posts-list">
+                    <li><a href="#" onclick="scrollToFirstArticle()">Nenhum artigo disponível</a></li>
+                </ul>
             </div>
-            <p style="color: #666; font-style: italic;">Acesso restrito para revisão e aprovação de submissões.</p>
+
+            <div class="categories">
+                <h3>Categorias</h3>
+                <ul>
+                    <li><a href="#" onclick="filterByCategory('Epistemologia')">Epistemologia (<span id="epistemologia-count">0</span>)</a></li>
+                    <li><a href="#" onclick="filterByCategory('Filosofia da Mente')">Filosofia da Mente (<span id="filosofia-mente-count">0</span>)</a></li>
+                    <li><a href="#" onclick="filterByCategory('Filosofia da Ciência')">Filosofia da Ciência (<span id="filosofia-ciencia-count">0</span>)</a></li>
+                    <li><a href="#" onclick="filterByCategory('Neurociência')">Neurociência (<span id="neurociencia-count">0</span>)</a></li>
+                    <li><a href="#" onclick="filterByCategory('Inteligência Artificial')">Inteligência Artificial (<span id="ia-count">0</span>)</a></li>
+                    <li><a href="#" onclick="showAllArticles()">Todos os Artigos (<span id="total-articles-count">0</span>)</a></li>
+                </ul>
+            </div>
+        </aside>
+    </div>
+
+    <button class="add-post" disabled title="Funcionalidade em desenvolvimento">+</button>
+    <button class="moderator-mode" onclick="openModeratorModal()" aria-label="Abrir painel de moderação">🛡️ Moderação</button>
+
+    <div class="notification" id="notification"></div>
+
+    <!-- Modal para criação de artigos -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCreateModal()" aria-label="Fechar modal de criação">×</span>
+            <h2 style="color: #2c3e50; margin-bottom: 20px;">✍️ Criar Novo Artigo</h2>
+            <p style="color: #666; margin-bottom: 20px;">Use o guia da IA acima para criar artigos ou escreva diretamente aqui.</p>
+            <div style="text-align: center; padding: 40px; color: #7f8c8d;">
+                <p>🚧 Funcionalidade em desenvolvimento</p>
+                <p>Por enquanto, use o formulário de submissão com Markdown na seção principal.</p>
+                <button onclick="closeCreateModal()" style="margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;" aria-label="Fechar modal de criação">Entendi</button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Modal de Preview -->
-<div id="previewModal" class="preview-modal">
-    <div class="preview-modal-content">
-        <div class="preview-header">
-            <h3 id="preview-title">Preview do Artigo</h3>
-            <button class="preview-btn close" onclick="closePreviewModal()">✕ Fechar</button>
-        </div>
-        <div class="preview-content rendered-content" id="preview-content">
-            <!-- Conteúdo do preview será inserido aqui -->
-        </div>
-        <div class="preview-actions" id="preview-actions">
-            <!-- Ações do preview serão inseridas aqui -->
+    <!-- Modal para moderação -->
+    <div id="moderatorModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModeratorModal()" aria-label="Fechar modal de moderação">×</span>
+            <h2 style="color: #2c3e50; margin-bottom: 20px;">🛡️ Painel de Moderação</h2>
+            <div id="moderator-content">
+                <div style="margin-bottom: 20px;">
+                    <label for="mod-password" style="display: block; margin-bottom: 8px; font-weight: 600;">Senha de Moderação:</label>
+                    <input type="password" id="mod-password" placeholder="Digite a senha de moderação" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;" required>
+                    <button onclick="authenticateModerator()" style="margin-top: 10px; padding: 10px 20px; background: #8e44ad; color: white; border: none; border-radius: 5px; cursor: pointer;" aria-label="Autenticar como moderador">Entrar</button>
+                </div>
+                <p style="color: #666; font-style: italic;">Acesso restrito para revisão e aprovação de submissões.</p>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    // Estado global OTIMIZADO
-    let likedArticles = new Set();
-    let isModeratorAuthenticated = false;
-    let pendingSubmissions = []; 
-    let approvedArticles = [];
-    let submissionIdCounter = 1; 
-    let articleIdCounter = 5;
-    let currentPreviewSubmission = null;
-    
-    // Carregar dados salvos ao iniciar
-    document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Blog iniciando...');
-    
-    try {
-        console.log('1. Carregando dados salvos...');
-        loadSavedData();
-        console.log('✅ Dados carregados. Artigos aprovados:', approvedArticles.length);
-        
-        console.log('2. Limitando tamanho dos dados...');
-        limitDataSize();
-        
-        console.log('3. Configurando event listeners...');
-        setupEventListeners();
-        
-        console.log('4. Inicializando artigos...');
-        initializeBlogWithArticles();
-        console.log('✅ Artigos inicializados');
-        
-        console.log('🎉 Blog carregado com sucesso!');
-        
-        // DIAGNÓSTICO ADICIONAL
-        setTimeout(() => {
-            const container = document.getElementById('articles-container');
-            console.log('📊 DIAGNÓSTICO FINAL:');
-            console.log('- Container encontrado:', !!container);
-            console.log('- Artigos no container:', container ? container.children.length : 'N/A');
-            console.log('- Artigos aprovados em memória:', approvedArticles.length);
-            
-            if (container && container.children.length === 0 && approvedArticles.length > 0) {
-                console.log('❌ PROBLEMA: Artigos existem em memória mas não foram renderizados');
-                console.log('🔧 TENTANDO CORRIGIR...');
+    <!-- Modal de Preview -->
+    <div id="previewModal" class="preview-modal">
+        <div class="preview-modal-content">
+            <div class="preview-header">
+                <h3 id="preview-title">Preview do Artigo</h3>
+                <button class="preview-btn close" onclick="closePreviewModal()" aria-label="Fechar modal de preview">✕ Fechar</button>
+            </div>
+            <div class="preview-content rendered-content" id="preview-content">
+                <!-- Conteúdo do preview será inserido aqui -->
+            </div>
+            <div class="preview-actions" id="preview-actions">
+                <!-- Ações do preview serão inseridas aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado global
+        let likedArticles = new Set();
+        let isModeratorAuthenticated = false;
+        let pendingSubmissions = [];
+        let approvedArticles = [];
+        let submissionIdCounter = 1;
+        let articleIdCounter = 1;
+        let currentPreviewSubmission = null;
+
+        // Carregar dados salvos ao iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Blog iniciando...');
+
+            try {
+                console.log('1. Carregando dados salvos...');
+                loadSavedData();
+                console.log('✅ Dados carregados. Artigos aprovados:', approvedArticles.length);
+
+                console.log('2. Limitando tamanho dos dados...');
+                limitDataSize();
+
+                console.log('3. Configurando event listeners...');
+                setupEventListeners();
+
+                console.log('4. Inicializando artigos...');
+                initializeBlogWithArticles();
+                console.log('✅ Artigos inicializados');
+
+                console.log('🎉 Blog carregado com sucesso!');
+
+                setTimeout(() => {
+                    const container = document.getElementById('articles-container');
+                    console.log('📊 DIAGNÓSTICO FINAL:');
+                    console.log('- Container encontrado:', !!container);
+                    console.log('- Artigos no container:', container ? container.children.length : 'N/A');
+                    console.log('- Artigos aprovados em memória:', approvedArticles.length);
+
+                    if (container && container.children.length === 0 && approvedArticles.length > 0) {
+                        console.log('❌ PROBLEMA: Artigos existem em memória mas não foram renderizados');
+                        console.log('🔧 TENTANDO CORRIGIR...');
+                        renderAllArticles();
+                    }
+                }, 1000);
+            } catch (error) {
+                console.error('❌ ERRO durante inicialização:', error);
+                console.log('🔧 TENTANDO RECUPERAÇÃO...');
+                approvedArticles = [];
                 renderAllArticles();
             }
-        }, 1000);
-        
-    } catch (error) {
-        console.error('❌ ERRO durante inicialização:', error);
-        console.log('🔧 TENTANDO RECUPERAÇÃO...');
-        
-        // Recuperação de emergência
-        approvedArticles = [];
-        createDefaultArticles();
-        renderAllArticles();
-    }
-});
-    
-    // Função para carregar dados salvos
-    function loadSavedData() {
-        try {
-            const savedData = JSON.parse(localStorage.getItem('blogData') || '{}');
-            pendingSubmissions = savedData.pendingSubmissions || [];
-            approvedArticles = savedData.approvedArticles || [];
-            submissionIdCounter = savedData.submissionIdCounter || 1;
-            articleIdCounter = savedData.articleIdCounter || 2;
-            likedArticles = new Set(savedData.likedArticles || []);
-            
-            console.log('📂 Dados carregados:', {
-                pendingSubmissions: pendingSubmissions.length,
-                approvedArticles: approvedArticles.length
-            });
-        } catch (e) {
-            console.error('❌ Erro ao carregar dados:', e);
-            resetData();
+        });
+
+        function loadSavedData() {
+            try {
+                const savedData = JSON.parse(localStorage.getItem('blogData') || '{}');
+                pendingSubmissions = savedData.pendingSubmissions || [];
+                approvedArticles = savedData.approvedArticles || [];
+                submissionIdCounter = savedData.submissionIdCounter || 1;
+                articleIdCounter = savedData.articleIdCounter || 1;
+                likedArticles = new Set(savedData.likedArticles || []);
+
+                console.log('📂 Dados carregados:', {
+                    pendingSubmissions: pendingSubmissions.length,
+                    approvedArticles: approvedArticles.length
+                });
+            } catch (e) {
+                console.error('❌ Erro ao carregar dados:', e);
+                resetData();
+            }
         }
-    }
-    
-    // CORREÇÃO: Função para limitar tamanho dos dados
-    function limitDataSize() {
-        if (pendingSubmissions.length > 50) {
-            pendingSubmissions = pendingSubmissions.slice(-50);
-            console.log('🗂️ Limitando submissões pendentes a 50');
+
+        function limitDataSize() {
+            if (pendingSubmissions.length > 50) {
+                pendingSubmissions = pendingSubmissions.slice(-50);
+                console.log('🗂️ Limitando submissões pendentes a 50');
+            }
+            if (approvedArticles.length > 20) {
+                approvedArticles = approvedArticles.slice(-20);
+                console.log('🗂️ Limitando artigos aprovados a 20');
+            }
         }
-        if (approvedArticles.length > 20) {
-            approvedArticles = approvedArticles.slice(-20);
-            console.log('🗂️ Limitando artigos aprovados a 20');
+
+        function resetData() {
+            pendingSubmissions = [];
+            approvedArticles = [];
+            submissionIdCounter = 1;
+            articleIdCounter = 1;
+            likedArticles = new Set();
         }
-    }
-    
-    function resetData() {
-        pendingSubmissions = [];
-        approvedArticles = [];
-        submissionIdCounter = 1;
-        articleIdCounter = 2;
-        likedArticles = new Set();
-    }
-    
-    // Função para salvar dados
-    function saveData() {
-        try {
-            limitDataSize(); // Limitar antes de salvar
-            const data = {
-                pendingSubmissions,
-                approvedArticles,
-                submissionIdCounter,
-                articleIdCounter,
-                likedArticles: Array.from(likedArticles),
-                lastSaved: new Date().toISOString()
+
+        function saveData() {
+            try {
+                limitDataSize();
+                const data = {
+                    pendingSubmissions,
+                    approvedArticles,
+                    submissionIdCounter,
+                    articleIdCounter,
+                    likedArticles: Array.from(likedArticles),
+                    lastSaved: new Date().toISOString()
+                };
+
+                const dataStr = JSON.stringify(data);
+                if (dataStr.length > 4 * 1024 * 1024) {
+                    console.warn('⚠️ Dados muito grandes, reduzindo tamanho...');
+                    pendingSubmissions = pendingSubmissions.slice(-25);
+                    approvedArticles = approvedArticles.slice(-10);
+                    data.pendingSubmissions = pendingSubmissions;
+                    data.approvedArticles = approvedArticles;
+                }
+
+                localStorage.setItem('blogData', JSON.stringify(data));
+                console.log('💾 Dados salvos (otimizado)');
+            } catch (e) {
+                console.error('❌ Erro ao salvar dados:', e);
+                if (e.name === 'QuotaExceededError') {
+                    showNotification('Armazenamento local cheio! Reduzindo dados automaticamente.', 'error');
+                    pendingSubmissions = pendingSubmissions.slice(-10);
+                    approvedArticles = approvedArticles.slice(-5);
+                    saveData();
+                }
+            }
+        }
+
+        setInterval(saveData, 120000);
+        window.addEventListener('beforeunload', saveData);
+
+        function setupEventListeners() {
+            const markdownForm = document.getElementById('markdown-form');
+            if (markdownForm) {
+                markdownForm.addEventListener('submit', handleArticleSubmission);
+                const fileInput = document.getElementById('article-file');
+                if (fileInput) {
+                    fileInput.addEventListener('change', handleFileUpload);
+                }
+                markdownForm.querySelectorAll('input, textarea, select').forEach(input => {
+                    input.addEventListener('invalid', () => {
+                        showNotification(`Campo "${input.labels[0]?.textContent || input.placeholder}" é obrigatório.`, 'error');
+                    });
+                });
+            }
+
+            const researchForm = document.getElementById('research-form');
+            if (researchForm) {
+                researchForm.addEventListener('submit', handleResearchSubmission);
+                researchForm.querySelectorAll('input, textarea, select').forEach(input => {
+                    input.addEventListener('invalid', () => {
+                        showNotification(`Campo "${input.labels[0]?.textContent || input.placeholder}" é obrigatório.`, 'error');
+                    });
+                });
+            }
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.name.endsWith('.md')) {
+                showNotification('Por favor, envie um arquivo com extensão .md', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const markdownContent = e.target.result;
+                document.getElementById('article-markdown').value = markdownContent;
+                showNotification('Arquivo Markdown carregado com sucesso!', 'success');
             };
-            
-            localStorage.setItem('blogData', JSON.stringify(data));
-            console.log('💾 Dados salvos (otimizado)');
-        } catch (e) {
-            console.error('❌ Erro ao salvar dados:', e);
+            reader.onerror = function() {
+                showNotification('Erro ao ler o arquivo Markdown.', 'error');
+            };
+            reader.readAsText(file);
         }
-    }
-    
-    // CORREÇÃO: Auto-save menos frequente (2 minutos)
-    setInterval(saveData, 120000);
-    
-    // Salvar dados ao sair da página
-    window.addEventListener('beforeunload', saveData);
-    
-    // Configurar event listeners
-    function setupEventListeners() {
-        const markdownForm = document.getElementById('markdown-form');
-        if (markdownForm) {
-            markdownForm.addEventListener('submit', handleArticleSubmission);
+
+        function handleArticleSubmission(e) {
+            e.preventDefault();
+
+            const markdownContent = document.getElementById('article-markdown').value.trim();
+            const category = document.getElementById('article-category').value;
+            const tags = document.getElementById('article-tags').value;
+            const additionalAuthors = document.getElementById('additional-authors').value;
+            const notes = document.getElementById('submission-notes').value;
+
+            if (!markdownContent) {
+                showNotification('Por favor, cole o conteúdo do artigo em Markdown ou carregue um arquivo .md.', 'error');
+                return;
+            }
+
+            const metadata = extractMetadata(markdownContent);
+
+            // Validações adicionais
+            if (!metadata.title) {
+                showNotification('Artigo deve ter um título (linha começando com #).', 'error');
+                return;
+            }
+            if (!metadata.abstract) {
+                showNotification('Artigo deve ter um resumo (seção ## Resumo).', 'error');
+                return;
+            }
+            const referenceMatch = markdownContent.match(/##\s+Referências?\s*\n([\s\S]*?)(?=\n##|\n#|$)/);
+            if (!referenceMatch || !referenceMatch[1].match(/\d+\.\s+.+/)) {
+                showNotification('Artigo deve ter uma seção de referências com pelo menos 15 entradas.', 'error');
+                return;
+            }
+            const referencesCount = (referenceMatch[1].match(/\d+\.\s+.+/g) || []).length;
+            if (referencesCount < 15) {
+                showNotification(`Artigo deve ter pelo menos 15 referências (encontradas: ${referencesCount}).`, 'error');
+                return;
+            }
+            if (!markdownContent.includes('|')) {
+                showNotification('Artigo deve conter pelo menos uma tabela no formato Markdown.', 'error');
+                return;
+            }
+
+            const submission = {
+                id: submissionIdCounter++,
+                type: 'article',
+                title: metadata.title,
+                category: metadata.category || category,
+                readTime: metadata.readTime || estimateReadTime(markdownContent),
+                author: metadata.author || 'Anônimo',
+                coauthors: metadata.coauthors || additionalAuthors,
+                abstract: metadata.abstract,
+                content: markdownContent,
+                tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+                notes: notes,
+                submittedAt: new Date().toISOString(),
+                status: 'pending'
+            };
+
+            pendingSubmissions.push(submission);
+            saveData();
+
+            console.log('📝 Nova submissão:', submission);
+
+            showNotification('Artigo submetido com sucesso! Aguarde a revisão.', 'success');
+
+            document.getElementById('markdown-form').reset();
+            updateCommunitySection();
         }
-        
-        const researchForm = document.getElementById('research-form');
-        if (researchForm) {
-            researchForm.addEventListener('submit', handleResearchSubmission);
+
+        function estimateReadTime(content) {
+            const words = content.split(/\s+/).length;
+            const minutes = Math.ceil(words / 200);
+            return `${minutes} min de leitura`;
         }
-    }
-    
-    // FUNÇÃO PARA INICIALIZAR BLOG COM ARTIGOS
-    function initializeBlogWithArticles() {
-        if (approvedArticles.length === 0) {
-            createDefaultArticles();
+
+        function extractMetadata(content) {
+            const metadata = {
+                title: '',
+                category: '',
+                readTime: '',
+                author: '',
+                coauthors: '',
+                abstract: ''
+            };
+
+            const lines = content.split('\n');
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line.startsWith('# ')) {
+                    metadata.title = line.substring(2).trim();
+                } else if (line.match(/^\*\*Categoria:\*\*\s*(.+)/)) {
+                    metadata.category = line.match(/^\*\*Categoria:\*\*\s*(.+)/)[1].trim();
+                } else if (line.match(/^\*\*Tempo de leitura:\*\*\s*(.+)/)) {
+                    metadata.readTime = line.match(/^\*\*Tempo de leitura:\*\*\s*(.+)/)[1].trim();
+                } else if (line.match(/^\*\*Autor:\*\*\s*(.+)/)) {
+                    metadata.author = line.match(/^\*\*Autor:\*\*\s*(.+)/)[1].trim();
+                } else if (line.match(/^\*\*Coautores:\*\*\s*(.+)/)) {
+                    metadata.coauthors = line.match(/^\*\*Coautores:\*\*\s*(.+)/)[1].trim();
+                } else if (line.match(/^##\s+Resumo/)) {
+                    let abstractLines = [];
+                    for (let j = i + 1; j < lines.length; j++) {
+                        if (lines[j].match(/^##/)) break;
+                        if (lines[j].trim()) abstractLines.push(lines[j].trim());
+                    }
+                    metadata.abstract = abstractLines.join(' ');
+                }
+            }
+            return metadata;
         }
-        renderAllArticles();
-        updateCommunitySection();
-    }
-    
-    // FUNÇÃO PARA CRIAR ARTIGOS PADRÃO
-    function createDefaultArticles() {
-    const defaultArticles = [
-        {
-            id: 1,
-            title: "A Revolução Silenciosa da Epistemologia Participativa: Repensando o Conhecimento na Era da IA",
-            author: "Bruno Francisco Prado Rocha",
-            category: "Epistemologia",
-            readTime: "15 min de leitura",
-            abstract: "Este artigo examina como a inteligência artificial está facilitando uma transformação epistemológica fundamental, permitindo que pesquisadores amadores contribuam significativamente para o avanço científico.",
-            content: `A ciência sempre foi território de uma elite intelectual altamente especializada. Mas e se pudéssemos democratizar não apenas o acesso ao conhecimento, mas também sua produção? A epistemologia participativa emerge como uma resposta a esta provocação, sustentada pelo poder transformador da inteligência artificial.
 
-Thomas Kuhn, em sua obra seminal "A Estrutura das Revoluções Científicas" (1962), demonstrou que o progresso científico não é linear, mas ocorre através de mudanças paradigmáticas. Argumentamos que estamos vivenciando uma dessas mudanças: a transição de uma epistemologia hierárquica para uma participativa.
+        function handleResearchSubmission(e) {
+            e.preventDefault();
 
-## 1. Fundamentação Teórica: Da Hierarquia à Participação
+            const title = document.getElementById('research-title').value.trim();
+            const field = document.getElementById('research-field').value;
+            const description = document.getElementById('research-description').value.trim();
+            const methods = document.getElementById('research-methods').value.trim();
+            const submitterInfo = document.getElementById('submitter-info').value.trim();
 
-### 1.1 O Paradigma Kuhniano Revisitado
+            if (!title || !description) {
+                showNotification('Por favor, preencha o título e a descrição da ideia de pesquisa.', 'error');
+                return;
+            }
 
-Kuhn identificou que revoluções científicas ocorrem quando anomalias se acumulam dentro de um paradigma dominante, forçando a comunidade científica a adotar um novo framework conceptual. A epistemologia participativa representa uma dessas mudanças paradigmáticas, onde a "anomalia" é a crescente democratização do acesso a ferramentas de pesquisa avançadas.
+            const submission = {
+                id: submissionIdCounter++,
+                type: 'research',
+                title: title,
+                field: field,
+                description: description,
+                methods: methods,
+                submitterInfo: submitterInfo,
+                submittedAt: new Date().toISOString(),
+                status: 'pending'
+            };
 
-## Referências
+            pendingSubmissions.push(submission);
+            saveData();
 
-1. Clark, A., & Chalmers, D. (1998). The Extended Mind. Analysis, 58(1), 7-19.
-2. Kuhn, T. (1962). The Structure of Scientific Revolutions. University of Chicago Press.`,
-            tags: ["epistemologia", "IA", "ciência"],
-            publishedAt: new Date().toISOString(),
-            likes: 0,
-            comments: 0,
-            views: 1
-        },
-        {
-            id: 2,
-            title: "Neuroplasticidade e Livre Arbítrio: Uma Análise Filosófica das Descobertas Neurocientíficas",
-            author: "Bruno Francisco Prado Rocha",
-            category: "Filosofia da Mente",
-            readTime: "12 min de leitura",
-            abstract: "Investigamos como as descobertas sobre neuroplasticidade impactam nossa compreensão filosófica do livre arbítrio e da responsabilidade moral.",
-            content: `A neuroplasticidade, capacidade do cérebro de se reorganizar estrutural e funcionalmente, emerge como um dos fenômenos mais fascinantes da neurociência contemporânea. Mas quais são suas implicações para questões filosóficas fundamentais como o livre arbítrio?
+            console.log('💡 Nova ideia de pesquisa submetida:', submission);
 
-## 1. Neuroplasticidade: Fundamentos Científicos
+            showNotification('Ideia de pesquisa submetida com sucesso! Aguarde a revisão.', 'success');
 
-A neuroplasticidade manifesta-se em múltiplos níveis: desde alterações sinápticas até reorganização cortical. Estudos demonstram que experiências, aprendizado e até mesmo pensamentos podem literalmente remodelar o cérebro.
-
-## 2. Implicações Filosóficas
-
-Se o cérebro é constantemente remodelado pela experiência, isso sugere que nossa "natureza" não é fixa, mas dinâmica. Isso fortalece ou enfraquece argumentos sobre livre arbítrio?
-
-## Referências
-
-1. Doidge, N. (2007). The Brain That Changes Itself. Penguin Books.
-2. Pascual-Leone, A. (2005). The plastic human brain cortex. Annual Review of Neuroscience, 28, 377-401.`,
-            tags: ["neuroplasticidade", "livre-arbítrio", "filosofia da mente"],
-            publishedAt: "2024-12-15T10:00:00Z",
-            likes: 3,
-            comments: 1,
-            views: 45
-        },
-        {
-            id: 3,
-            title: "O Problema da Demarcação em Tempos de IA: Repensando Popper na Era Digital",
-            author: "Bruno Francisco Prado Rocha",
-            category: "Filosofia da Ciência",
-            readTime: "18 min de leitura",
-            abstract: "Uma reavaliação do critério de falsificabilidade de Popper considerando os desafios epistemológicos impostos pela inteligência artificial e machine learning.",
-            content: `Karl Popper propôs a falsificabilidade como critério de demarcação entre ciência e não-ciência. Mas como esse critério se aplica em uma era onde algoritmos de IA fazem predições sem teorias explícitas?
-
-## 1. O Critério de Popper Revisitado
-
-Popper argumentou que uma teoria é científica se e somente se for falsificável. Esse critério visava distinguir ciência de pseudociência, mas a IA desafia essa dicotomia.
-
-## 2. Machine Learning e Conhecimento Científico
-
-Algoritmos de deep learning produzem conhecimento útil sem teorias explícitas. Eles são "caixas-pretas" que funcionam, mas não sabemos exatamente como ou por quê.
-
-## 3. Novo Framework Epistemológico
-
-Propomos critérios adicionais: reprodutibilidade computacional, transparência algorítmica e validação empírica distribuída.
-
-## Referências
-
-1. Popper, K. (1959). The Logic of Scientific Discovery. Hutchinson.
-2. Rudin, C. (2019). Stop explaining black box machine learning models. Nature Machine Intelligence, 1(5), 206-215.`,
-            tags: ["popper", "falsificabilidade", "IA", "filosofia da ciência"],
-            publishedAt: "2024-12-10T14:30:00Z",
-            likes: 7,
-            comments: 2,
-            views: 78
-        },
-        {
-            id: 4,
-            title: "Cognição Estendida e Interfaces Cérebro-Computador: Redefinindo os Limites da Mente",
-            author: "Bruno Francisco Prado Rocha",
-            category: "Neurociência",
-            readTime: "20 min de leitura",
-            abstract: "Exploramos como as interfaces cérebro-computador validam empiricamente a teoria da cognição estendida de Clark e Chalmers, expandindo nossa concepção de mente.",
-            content: `A teoria da cognição estendida propõe que processos cognitivos podem se estender além dos limites biológicos do cérebro. Interfaces cérebro-computador (BCIs) oferecem evidência empírica fascinante para esta proposição.
-
-## 1. Cognição Estendida: Teoria e Evidências
-
-Clark e Chalmers (1998) argumentaram que ferramentas podem literalmente se tornar parte de nossos processos cognitivos. BCIs tornam essa extensão mais literal do que metafórica.
-
-## 2. Interfaces Cérebro-Computador: Estado da Arte
-
-Tecnologias como Neuralink demonstram integração direta entre cérebro e sistemas computacionais, criando híbridos mente-máquina.
-
-## 3. Implicações Filosóficas
-
-Se a mente pode se estender através de BCIs, onde exatamente termina o "eu" e começa a tecnologia? Essas questões desafiam concepções tradicionais de identidade pessoal.
-
-## 4. Considerações Éticas
-
-A cognição estendida via BCIs levanta questões sobre privacidade mental, autenticidade do self e equidade no acesso cognitivo.
-
-## Referências
-
-1. Clark, A., & Chalmers, D. (1998). The Extended Mind. Analysis, 58(1), 7-19.
-2. Ienca, M., & Andorno, R. (2017). Towards new human rights in the age of neuroscience and neurotechnology. Life Sciences, Society and Policy, 13(1), 5.
-3. Reardon, S. (2019). Brain implants allow paralysed people to control computer cursors. Nature, 565(7738), 142-143.`,
-            tags: ["cognição estendida", "BCI", "interfaces", "neurociência"],
-            publishedAt: "2024-12-05T09:15:00Z",
-            likes: 12,
-            comments: 4,
-            views: 156
+            document.getElementById('research-form').reset();
+            updateCommunitySection();
         }
-    ];
-    
-    approvedArticles = defaultArticles;
-    saveData();
-}
-           
-           approvedArticles = defaultArticles;
-           saveData();
-       }
-       
-       // FUNÇÃO PARA RENDERIZAR TODOS OS ARTIGOS - OTIMIZADA
-       function renderAllArticles() {
-           const container = document.getElementById('articles-container');
-           
-           // Evitar re-renderização desnecessária
-           if (container.children.length === approvedArticles.length) {
-               return;
-           }
-           
-           container.innerHTML = '';
-           
-           if (approvedArticles.length > 0) {
-               approvedArticles.forEach(article => {
-                   const articleHtml = createArticleHTML(article);
-                   container.insertAdjacentHTML('beforeend', articleHtml);
-               });
-           }
-           
-           updateSidebarCounts();
-           console.log('📰 Artigos renderizados:', approvedArticles.length);
-       }
-       
-       // FUNÇÃO PARA CRIAR HTML DE ARTIGO
-       function createArticleHTML(article) {
-           const processedContent = parseMarkdown(article.content, true);
-           
-           return `
-               <article class="article" id="article${article.id}">
-                   <div class="article-meta">
-                       <span class="article-author">${article.author}</span>
-                       <span class="article-category">${article.category}</span>
-                       <span class="article-time">${article.readTime}</span>
-                   </div>
-                   
-                   <h2>${article.title}</h2>
-                   
-                   ${article.abstract ? `
-                       <div class="article-abstract">
-                           <h3>Resumo</h3>
-                           <p>${article.abstract}</p>
-                       </div>
-                   ` : ''}
-                   
-                   <p>${article.content.split('\n\n')[0]}</p>
-                   
-                   <button class="read-more" onclick="toggleArticle('article${article.id}')">Leia o artigo completo</button>
-                   
-                   <div class="article-content" id="content${article.id}">
-                       <div class="rendered-content">
-                           ${processedContent}
-                       </div>
-                   </div>
 
-                   <div class="article-actions">
-                       <div class="social-buttons">
-                           <button class="social-btn like-btn" onclick="toggleLike(${article.id})">
-                               <span>❤️</span> <span id="like-count-${article.id}">${article.likes || 0}</span> Curtir
-                           </button>
-                           <button class="social-btn share-btn" onclick="shareArticle(${article.id})">
-                               <span>🔗</span> Compartilhar
-                           </button>
-                           <button class="social-btn comment-btn" onclick="toggleComments(${article.id})">
-                               <span>💬</span> <span id="comment-count-${article.id}">${article.comments || 0}</span> Comentários
-                           </button>
-                       </div>
-                       <div class="article-stats">
-                           <div class="stat-item">
-                               <span>👁️</span> <span id="view-count-${article.id}">${article.views || 1}</span> visualizações
-                           </div>
-                       </div>
-                   </div>
+        function initializeBlogWithArticles() {
+            renderAllArticles();
+            updateCommunitySection();
+        }
 
-                   <div class="comments-section" id="comments-${article.id}">
-                       <div class="comment-form">
-                           <textarea placeholder="Compartilhe suas reflexões sobre este artigo..."></textarea>
-                           <button onclick="addComment(${article.id})">Publicar Comentário</button>
-                       </div>
-                       <div class="no-comments" style="text-align: center; color: #7f8c8d; padding: 20px; font-style: italic;">
-                           Ainda não há comentários. Seja o primeiro a compartilhar suas reflexões!
-                       </div>
-                   </div>
-               </article>
-           `;
-       }
-       
-       // FUNÇÃO PARA ATUALIZAR SEÇÃO DA COMUNIDADE
-       function updateCommunitySection() {
-           const communityContent = document.getElementById('community-content');
-           
-           if (pendingSubmissions.length === 0) {
-               communityContent.innerHTML = `
-                   <h4 style="color: #34495e; margin-bottom: 15px;">Em breve...</h4>
-                   <p>Este espaço será preenchido com as contribuições da comunidade.</p>
-                   <p>Seja o primeiro a submeter um artigo criado com IA ou uma ideia de pesquisa!</p>
-                   <p style="margin-top: 20px; font-size: 0.9em;">
-                       <strong>🎯 Objetivo:</strong> Criar um banco colaborativo de artigos e pesquisas para acelerar o desenvolvimento científico através da epistemologia participativa.
-                   </p>
-               `;
-           } else {
-               communityContent.innerHTML = `
-                   <h4 style="color: #f39c12; margin-bottom: 15px;">🔄 Submissões em Análise</h4>
-                   <p style="margin-bottom: 20px;">Existem <strong>${pendingSubmissions.length}</strong> submissões aguardando revisão:</p>
-                   <div style="background: #fff; border-radius: 8px; padding: 15px;">
-                       ${pendingSubmissions.slice(0, 3).map(sub => `
-                           <div style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                               <strong>${sub.title}</strong><br>
-                               <small style="color: #666;">por ${sub.author || sub.submitterInfo || 'Anônimo'} - ${new Date(sub.submittedAt).toLocaleDateString('pt-BR')}</small>
-                           </div>
-                       `).join('')}
-                       ${pendingSubmissions.length > 3 ? `<div style="padding: 10px 0; color: #666; font-style: italic;">... e mais ${pendingSubmissions.length - 3} submissões</div>` : ''}
-                   </div>
-                   <p style="margin-top: 15px; font-size: 0.9em; color: #666;">
-                       ✨ Em breve você verá os artigos aprovados aparecendo aqui no blog!
-                   </p>
-               `;
-           }
-       }
-       
-       // FUNÇÃO DE PROCESSAMENTO MARKDOWN OTIMIZADA (CORREÇÃO PRINCIPAL)
-       function parseMarkdown(markdown, isFullArticle = false) {
-           if (!markdown || markdown.trim() === '') {
-               return '<p>Conteúdo não disponível</p>';
-           }
-           
-           console.log('🔍 Processando Markdown (otimizado)...', { tamanho: markdown.length });
-           
-           // Processamento simples linha por linha (evita regex complexa)
-           const lines = markdown.split('\n');
-           const processedLines = [];
-           let inReferences = false;
-           let referencesList = [];
-           
-           for (let i = 0; i < lines.length; i++) {
-               let line = lines[i].trim();
-               
-               // Detectar seção de referências
-               if (line.match(/^##\s+Referências?/)) {
-                   inReferences = true;
-                   processedLines.push('<h2>' + line.replace(/^##\s+/, '') + '</h2>');
-                   processedLines.push('<div class="references"><ol>');
-                   continue;
-               }
-               
-               // Processar referências numeradas
-               if (inReferences && line.match(/^\d+\./)) {
-                   const refText = line.replace(/^\d+\.\s*/, '');
-                   referencesList.push('<li>' + refText + '</li>');
-                   continue;
-               }
-               
-               // Fechar seção de referências se sair dela
-               if (inReferences && line.match(/^##/) && !line.match(/^##\s+Referências?/)) {
-                   processedLines.push(...referencesList);
-                   processedLines.push('</ol></div>');
-                   inReferences = false;
-                   referencesList = [];
-               }
-               
-               // Headers
-               if (line.startsWith('# ')) {
-                   processedLines.push('<h1>' + line.substring(2) + '</h1>');
-               } else if (line.startsWith('## ') && !inReferences) {
-                   processedLines.push('<h2>' + line.substring(3) + '</h2>');
-               } else if (line.startsWith('### ')) {
-                   processedLines.push('<h3>' + line.substring(4) + '</h3>');
-               } else if (line.startsWith('#### ')) {
-                   processedLines.push('<h4>' + line.substring(5) + '</h4>');
-               } else if (line === '') {
-                   processedLines.push('');
-               } else if (!inReferences) {
-                   // Formatação básica para texto normal
-                   line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-                   line = line.replace(/\*([^*]+?)\*/g, '<em>$1</em>');
-                   processedLines.push('<p>' + line + '</p>');
-               }
-           }
-           
-           // Fechar referências se terminar nelas
-           if (inReferences && referencesList.length > 0) {
-               processedLines.push(...referencesList);
-               processedLines.push('</ol></div>');
-           }
-           
-           console.log('✅ Markdown processado (otimizado)');
-           return processedLines.join('\n');
-       }
-       
-       // Função para extrair metadados do markdown
-       function extractMetadata(markdown) {
-           const metadata = {
-               title: '',
-               category: '',
-               readTime: '',
-               author: '',
-               coauthors: '',
-               abstract: ''
-           };
-           
-           const titleMatch = markdown.match(/^#\s+(.+)$/m);
-           if (titleMatch) {
-               metadata.title = titleMatch[1].trim();
-           }
-           
-           const categoryMatch = markdown.match(/\*\*Categoria:\*\*\s*(.+)/);
-           if (categoryMatch) {
-               metadata.category = categoryMatch[1].trim();
-           }
-           
-           const timeMatch = markdown.match(/\*\*Tempo de leitura:\*\*\s*(.+)/);
-           if (timeMatch) {
-               metadata.readTime = timeMatch[1].trim();
-           }
-           
-           const authorMatch = markdown.match(/\*\*Autor:\*\*\s*(.+)/);
-           if (authorMatch) {
-               metadata.author = authorMatch[1].trim();
-           }
-           
-           const coauthorsMatch = markdown.match(/\*\*Coautores:\*\*\s*(.+)/);
-           if (coauthorsMatch) {
-               metadata.coauthors = coauthorsMatch[1].trim();
-           }
-           
-           const abstractMatch = markdown.match(/##\s+Resumo\s*\n([\s\S]*?)(?=\n##|\n#|$)/);
-           if (abstractMatch) {
-               metadata.abstract = abstractMatch[1].trim();
-           }
-           
-           return metadata;
-       }
-       
-       // Função para lidar com submissão de artigos
-       function handleArticleSubmission(e) {
-           e.preventDefault();
-           
-           const markdownContent = document.getElementById('article-markdown').value.trim();
-           const category = document.getElementById('article-category').value;
-           const tags = document.getElementById('article-tags').value;
-           const additionalAuthors = document.getElementById('additional-authors').value;
-           const notes = document.getElementById('submission-notes').value;
-           
-           if (!markdownContent) {
-               showNotification('Por favor, cole o conteúdo do artigo em Markdown.', 'error');
-               return;
-           }
-           
-           const metadata = extractMetadata(markdownContent);
-           
-           if (!metadata.title) {
-               showNotification('Artigo deve ter um título (linha começando com #).', 'error');
-               return;
-           }
-           
-           const submission = {
-               id: submissionIdCounter++,
-               type: 'article',
-               title: metadata.title,
-               category: metadata.category || category,
-               readTime: metadata.readTime || 'Não especificado',
-               author: metadata.author || 'Anônimo',
-               coauthors: metadata.coauthors || additionalAuthors,
-               abstract: metadata.abstract,
-               content: markdownContent,
-               tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-               notes: notes,
-               submittedAt: new Date().toISOString(),
-               status: 'pending'
-           };
-           
-           pendingSubmissions.push(submission);
-           saveData();
-           
-           console.log('📝 Nova submissão:', submission);
-           
-           showNotification('Artigo submetido com sucesso! Aguarde a revisão.', 'success');
-           
-           document.getElementById('markdown-form').reset();
-           updateCommunitySection();
-       }
-       
-       // Função para lidar com submissão de ideias de pesquisa
-       function handleResearchSubmission(e) {
-           e.preventDefault();
-           
-           const title = document.getElementById('research-title').value.trim();
-           const field = document.getElementById('research-field').value;
-           const description = document.getElementById('research-description').value.trim();
-           const methods = document.getElementById('research-methods').value.trim();
-           const submitterInfo = document.getElementById('submitter-info').value.trim();
-           
-           if (!title || !description) {
-               showNotification('Por favor, preencha pelo menos o título e a descrição.', 'error');
-               return;
-           }
-           
-           const submission = {
-               id: submissionIdCounter++,
-               type: 'research_idea',
-               title: title,
-               field: field,
-               description: description,
-               methods: methods,
-               submitterInfo: submitterInfo,
-               submittedAt: new Date().toISOString(),
-               status: 'pending'
-           };
-           
-           pendingSubmissions.push(submission);
-           saveData();
-           
-           console.log('💡 Nova ideia de pesquisa:', submission);
-           
-           showNotification('Ideia de pesquisa submetida com sucesso!', 'success');
-           
-           document.getElementById('research-form').reset();
-           updateCommunitySection();
-       }
-       
-       // Função para mostrar preview do artigo
-       function showPreview() {
-           const markdownContent = document.getElementById('article-markdown').value.trim();
-           
-           if (!markdownContent) {
-               showNotification('Por favor, cole o conteúdo do artigo primeiro.', 'error');
-               return;
-           }
-           
-           const metadata = extractMetadata(markdownContent);
-           const processedHtml = parseMarkdown(markdownContent, true);
-           
-           const previewSubmission = {
-               title: metadata.title || 'Título não encontrado',
-               author: metadata.author || 'Autor não especificado',
-               category: metadata.category || document.getElementById('article-category').value,
-               readTime: metadata.readTime || 'Não especificado',
-               content: processedHtml,
-               isPreview: true
-           };
-           
-           openPreviewModal(previewSubmission);
-       }
-       
-       // Função para abrir modal de preview
-       function openPreviewModal(submission) {
-           currentPreviewSubmission = submission;
-           
-           const modal = document.getElementById('previewModal');
-           const title = document.getElementById('preview-title');
-           const content = document.getElementById('preview-content');
-           const actions = document.getElementById('preview-actions');
-           
-           title.textContent = `Preview: ${submission.title}`;
-           
-           let previewHtml = `
-               <div class="article-meta" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; flex-wrap: wrap; gap: 10px;">
-                   <span style="font-weight: 600; color: #3498db;">${submission.author}</span>
-                   <span style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9em;">${submission.category}</span>
-                   <span style="color: #7f8c8d; font-size: 0.9em;">${submission.readTime}</span>
-               </div>
-               <div class="rendered-content">
-                   ${submission.content}
-               </div>
-           `;
-           
-           content.innerHTML = previewHtml;
-           
-           if (submission.isPreview) {
-               actions.innerHTML = `
-                   <button class="preview-btn close" onclick="closePreviewModal()">Fechar Preview</button>
-               `;
-           } else {
-               actions.innerHTML = `
-                   <button class="preview-btn approve" onclick="approveSubmission(${submission.id})">✅ Aprovar</button>
-                   <button class="preview-btn reject" onclick="rejectSubmission(${submission.id})">❌ Rejeitar</button>
-                   <button class="preview-btn close" onclick="closePreviewModal()">Fechar</button>
-               `;
-           }
-           
-           modal.style.display = 'block';
-           content.scrollTop = 0;
-       }
-       
-       // Função para fechar modal de preview
-       function closePreviewModal() {
-           const modal = document.getElementById('previewModal');
-           modal.style.display = 'none';
-           currentPreviewSubmission = null;
-       }
-       
-       // Função para copiar prompt da IA
-       function copyPrompt() {
-           const promptText = document.getElementById('ai-prompt').textContent;
-           
-           if (navigator.clipboard) {
-               navigator.clipboard.writeText(promptText).then(() => {
-                   showNotification('Prompt copiado para a área de transferência!', 'success');
-               }).catch(() => {
-                   fallbackCopyText(promptText);
-               });
-           } else {
-               fallbackCopyText(promptText);
-           }
-       }
-       
-       function fallbackCopyText(text) {
-           const textArea = document.createElement('textarea');
-           textArea.value = text;
-           document.body.appendChild(textArea);
-           textArea.select();
-           try {
-               document.execCommand('copy');
-               showNotification('Prompt copiado!', 'success');
-           } catch (err) {
-               showNotification('Erro ao copiar. Copie manualmente.', 'error');
-           }
-           document.body.removeChild(textArea);
-       }
-       
-       // Sistema de moderação
-       function openModeratorModal() {
-           const modal = document.getElementById('moderatorModal');
-           modal.style.display = 'block';
-           
-           if (isModeratorAuthenticated) {
-               showModeratorPanel();
-           }
-       }
-       
-       function closeModeratorModal() {
-           const modal = document.getElementById('moderatorModal');
-           modal.style.display = 'none';
-       }
-       
-       function authenticateModerator() {
-           const password = document.getElementById('mod-password').value;
-           const correctPassword = '@Epis0305%$#@temoLogia';
-           
-           if (password === correctPassword) {
-               isModeratorAuthenticated = true;
-               showModeratorPanel();
-               showNotification('Acesso de moderador autorizado!', 'success');
-           } else {
-               showNotification('Senha incorreta!', 'error');
-           }
-       }
-       
-       function showModeratorPanel() {
-           const content = document.getElementById('moderator-content');
-           
-           let panelHtml = `
-               <div style="margin-bottom: 20px;">
-                   <h3 style="color: #27ae60; margin-bottom: 15px;">✅ Acesso Autorizado</h3>
-                   <p style="color: #666; margin-bottom: 20px;">Submissões pendentes: <strong>${pendingSubmissions.length}</strong></p>
-               </div>
-               
-               <div style="margin-bottom: 20px;">
-                   <button onclick="debugLocalStorage()" style="margin-right: 10px; padding: 8px 15px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">🔍 Debug</button>
-                   <button onclick="clearAllSubmissions()" style="margin-right: 10px; padding: 8px 15px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer;">🗑️ Limpar Todas</button>
-                   <button onclick="exportSubmissions()" style="padding: 8px 15px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer;">📥 Exportar</button>
-               </div>
-           `;
-           
-           if (pendingSubmissions.length === 0) {
-               panelHtml += `
-                   <div style="text-align: center; padding: 40px; color: #7f8c8d; background: #f8f9fa; border-radius: 8px;">
-                       <h4>Nenhuma submissão pendente</h4>
-                       <p>Todas as submissões foram processadas ou não há submissões ainda.</p>
-                   </div>
-               `;
-           } else {
-               panelHtml += '<div style="max-height: 400px; overflow-y: auto;">';
-               
-               pendingSubmissions.forEach(submission => {
-                   const submissionDate = new Date(submission.submittedAt).toLocaleDateString('pt-BR');
-                   const submissionAuthor = submission.author || submission.submitterInfo || 'Anônimo';
-                   const submissionCategory = submission.category || submission.field || submission.type;
-                   const submissionDescription = submission.abstract || submission.description || 'Sem descrição';
-                   
-                   panelHtml += `
-                       <div class="submission-pending">
-                           <div class="submission-title">${submission.title}</div>
-                           <div class="submission-meta">
-                               <span>📅 ${submissionDate}</span>
-                               <span>👤 ${submissionAuthor}</span>
-                               <span>📂 ${submissionCategory}</span>
-                               <span>🔖 ID: ${submission.id}</span>
-                           </div>
-                           <div class="submission-description">
-                               ${submissionDescription.length > 200 ? submissionDescription.substring(0, 200) + '...' : submissionDescription}
-                           </div>
-                           <div class="submission-actions">
-                               <button class="btn-preview" onclick="previewSubmission(${submission.id})">👁️ Preview Completo</button>
-                               <button class="btn-approve" onclick="approveSubmission(${submission.id})">✅ Aprovar</button>
-                               <button class="btn-reject" onclick="rejectSubmission(${submission.id})">❌ Rejeitar</button>
-                           </div>
-                       </div>
-                   `;
-               });
-               
-               panelHtml += '</div>';
-           }
-           
-           content.innerHTML = panelHtml;
-       }
-       
-       function previewSubmission(submissionId) {
-           const submission = pendingSubmissions.find(s => s.id === submissionId);
-           if (!submission) {
-               showNotification('Submissão não encontrada!', 'error');
-               return;
-           }
-           
-           if (submission.type === 'article') {
-               const processedContent = parseMarkdown(submission.content, true);
-               const previewSubmission = {
-                   ...submission,
-                   content: processedContent,
-                   isPreview: false
-               };
-               openPreviewModal(previewSubmission);
-           } else {
-               const previewContent = `
-                   <div style="background: #e8f5e8; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                       <h3 style="color: #27ae60; margin-bottom: 15px;">💡 Ideia de Pesquisa</h3>
-                   </div>
-                   <div style="margin-bottom: 20px;">
-                       <h4 style="color: #2c3e50; margin-bottom: 10px;">Campo de Estudo:</h4>
-                       <p style="background: #f8f9fa; padding: 10px; border-radius: 5px;">${submission.field}</p>
-                   </div>
-                   <div style="margin-bottom: 20px;">
-                       <h4 style="color: #2c3e50; margin-bottom: 10px;">Descrição do Problema:</h4>
-                       <p style="line-height: 1.6; text-align: justify;">${submission.description}</p>
-                   </div>
-                   ${submission.methods ? `
-                       <div style="margin-bottom: 20px;">
-                           <h4 style="color: #2c3e50; margin-bottom: 10px;">Métodos Sugeridos:</h4>
-                           <p style="line-height: 1.6; text-align: justify;">${submission.methods}</p>
-                       </div>
-                   ` : ''}
-                   ${submission.submitterInfo ? `
-                       <div style="margin-bottom: 20px;">
-                           <h4 style="color: #2c3e50; margin-bottom: 10px;">Submetido por:</h4>
-                           <p style="background: #f8f9fa; padding: 10px; border-radius: 5px;">${submission.submitterInfo}</p>
-                       </div>
-                   ` : ''}
-               `;
-               
-               const previewSubmission = {
-                   ...submission,
-                   content: previewContent,
-                   isPreview: false
-               };
-               openPreviewModal(previewSubmission);
-           }
-       }
-       
-       function approveSubmission(submissionId) {
-           const submissionIndex = pendingSubmissions.findIndex(s => s.id === submissionId);
-           if (submissionIndex !== -1) {
-               const submission = pendingSubmissions[submissionIndex];
-               
-               const newArticle = {
-                   id: articleIdCounter++,
-                   title: submission.title,
-                   author: submission.author || 'Anônimo',
-                   coauthors: submission.coauthors || '',
-                   category: submission.category,
-                   readTime: submission.readTime || 'Tempo não especificado',
-                   abstract: submission.abstract || '',
-                   content: submission.content,
-                   tags: submission.tags || [],
-                   publishedAt: new Date().toISOString(),
-                   submissionNotes: submission.notes || '',
-                   originalSubmissionDate: submission.submittedAt,
-                   likes: 0,
-                   comments: 0,
-                   views: 0
-               };
-               
-               approvedArticles.unshift(newArticle);
-               pendingSubmissions.splice(submissionIndex, 1);
-               
-               saveData();
-               renderAllArticles();
-               updateCommunitySection();
-               
-               showNotification(`Artigo "${submission.title}" aprovado e publicado!`, 'success');
-               
-               showModeratorPanel();
-               closePreviewModal();
-               
-               console.log('✅ Artigo aprovado e publicado:', newArticle);
-               
-               setTimeout(() => {
-                   const newArticleElement = document.getElementById(`article${newArticle.id}`);
-                   if (newArticleElement) {
-                       newArticleElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                       newArticleElement.style.transform = 'scale(1.02)';
-                       newArticleElement.style.boxShadow = '0 20px 40px rgba(52, 152, 219, 0.2)';
-                       setTimeout(() => {
-                           newArticleElement.style.transform = '';
-                           newArticleElement.style.boxShadow = '';
-                       }, 2000);
-                   }
-               }, 500);
-           }
-       }
-       
-       function rejectSubmission(submissionId) {
-           const submissionIndex = pendingSubmissions.findIndex(s => s.id === submissionId);
-           if (submissionIndex !== -1) {
-               const submission = pendingSubmissions[submissionIndex];
-               
-               pendingSubmissions.splice(submissionIndex, 1);
-               saveData();
-               
-               showNotification(`Submissão "${submission.title}" rejeitada.`, 'info');
-               
-               showModeratorPanel();
-               closePreviewModal();
-               updateCommunitySection();
-               
-               console.log('❌ Submissão rejeitada:', submission);
-           }
-       }
-       
-       function debugLocalStorage() {
-           console.log('🔍 DEBUG LOCALSTORAGE:');
-           console.log('- Submissões pendentes:', pendingSubmissions.length);
-           console.log('- Artigos aprovados:', approvedArticles.length);
-           console.log('- Dados brutos:', localStorage.getItem('blogData'));
-           
-           alert(`DEBUG INFO:\n\nSubmissões pendentes: ${pendingSubmissions.length}\nArtigos aprovados: ${approvedArticles.length}\n\nVeja o console para detalhes completos.`);
-       }
-       
-       function clearAllSubmissions() {
-           if (confirm('⚠️ ATENÇÃO: Isso irá apagar TODAS as submissões permanentemente. Continuar?')) {
-               pendingSubmissions = [];
-               submissionIdCounter = 1;
-               saveData();
-               showModeratorPanel();
-               updateCommunitySection();
-               showNotification('Todas as submissões foram removidas.', 'info');
-               console.log('🗑️ Todas as submissões foram removidas');
-           }
-       }
-       
-       function exportSubmissions() {
-           if (pendingSubmissions.length === 0) {
-               showNotification('Nenhuma submissão para exportar.', 'info');
-               return;
-           }
-           
-           const exportData = {
-               exportDate: new Date().toISOString(),
-               totalSubmissions: pendingSubmissions.length,
-               submissions: pendingSubmissions
-           };
-           
-           const dataStr = JSON.stringify(exportData, null, 2);
-           const dataBlob = new Blob([dataStr], {type: 'application/json'});
-           
-           const link = document.createElement('a');
-           link.href = URL.createObjectURL(dataBlob);
-           link.download = `blog-submissions-${new Date().toISOString().split('T')[0]}.json`;
-           link.click();
-           
-           showNotification('Submissões exportadas com sucesso!', 'success');
-       }
-       
-       // FUNÇÕES DE INTERAÇÃO DO BLOG - OTIMIZADAS
-       function toggleArticle(articleId) {
-           const content = document.getElementById('content' + articleId.replace('article', ''));
-           const button = event.target;
-           
-           if (content && content.classList.contains('expanded')) {
-               content.classList.remove('expanded');
-               button.textContent = 'Leia o artigo completo';
-           } else if (content) {
-               content.classList.add('expanded');
-               button.textContent = 'Recolher artigo';
-               
-               const articleNumId = parseInt(articleId.replace('article', ''));
-               incrementViews(articleNumId);
-           }
-       }
-       
-       function incrementViews(articleId) {
-           const article = approvedArticles.find(a => a.id === articleId);
-           if (article) {
-               article.views = (article.views || 0) + 1;
-               const viewElement = document.getElementById(`view-count-${articleId}`);
-               if (viewElement) {
-                   viewElement.textContent = article.views;
-               }
-               saveData();
-           }
-       }
-       
-       function toggleLike(articleId) {
-           const likeBtn = event.target.closest('.like-btn');
-           const countSpan = document.getElementById(`like-count-${articleId}`);
-           const article = approvedArticles.find(a => a.id === articleId);
-           
-           if (!article) return;
-           
-           if (likedArticles.has(articleId)) {
-               likedArticles.delete(articleId);
-               likeBtn.classList.remove('liked');
-               article.likes = Math.max(0, (article.likes || 0) - 1);
-           } else {
-               likedArticles.add(articleId);
-               likeBtn.classList.add('liked');
-               article.likes = (article.likes || 0) + 1;
-           }
-           
-           countSpan.textContent = article.likes;
-           saveData();
-       }
-       
-       function shareArticle(articleId) {
-           const article = approvedArticles.find(a => a.id === articleId);
-           const title = article ? article.title : 'Realidade Emergente - Blog de Filosofia e Ciência';
-           const text = article ? `Confira este artigo: "${article.title}"` : 'Confira este artigo interessante sobre epistemologia participativa!';
-           
-           if (navigator.share) {
-               navigator.share({
-                   title: title,
-                   text: text,
-                   url: window.location.href
-               });
-           } else {
-               const url = window.location.href;
-               if (navigator.clipboard) {
-                   navigator.clipboard.writeText(url).then(() => {
-                       showNotification('Link copiado para a área de transferência!', 'success');
-                   });
-               } else {
-                   showNotification('Compartilhe este link: ' + url, 'info');
-               }
-           }
-       }
-       
-       function toggleComments(articleId) {
-           const commentsSection = document.getElementById(`comments-${articleId}`);
-           
-           if (commentsSection && commentsSection.classList.contains('visible')) {
-               commentsSection.classList.remove('visible');
-           } else if (commentsSection) {
-               commentsSection.classList.add('visible');
-           }
-       }
-       
-       function addComment(articleId) {
-           const textarea = document.querySelector(`#comments-${articleId} textarea`);
-           const commentText = textarea.value.trim();
-           
-           if (!commentText) {
-               showNotification('Por favor, escreva um comentário.', 'error');
-               return;
-           }
-           
-           const commentsContainer = document.getElementById(`comments-${articleId}`);
-           const noCommentsDiv = commentsContainer.querySelector('.no-comments');
-           
-           if (noCommentsDiv) {
-               noCommentsDiv.remove();
-           }
-           
-           const commentHtml = `
-               <div class="comment">
-                   <div class="comment-author">Visitante</div>
-                   <div class="comment-time">${new Date().toLocaleString('pt-BR')}</div>
-                   <div>${commentText}</div>
-               </div>
-           `;
-           
-           commentsContainer.insertAdjacentHTML('beforeend', commentHtml);
-           
-           const article = approvedArticles.find(a => a.id === articleId);
-           if (article) {
-               article.comments = (article.comments || 0) + 1;
-               const countSpan = document.getElementById(`comment-count-${articleId}`);
-               if (countSpan) {
-                   countSpan.textContent = article.comments;
-               }
-               saveData();
-           }
-           
-           textarea.value = '';
-           showNotification('Comentário adicionado!', 'success');
-       }
-       
-       // FUNÇÕES DE NAVEGAÇÃO E FILTROS
-       function scrollToFirstArticle() {
-           const firstArticle = document.querySelector('.article');
-           if (firstArticle) {
-               firstArticle.scrollIntoView({ behavior: 'smooth' });
-           }
-       }
-       
-       function scrollToArticle(articleId) {
-           const article = document.getElementById(articleId);
-           if (article) {
-               article.scrollIntoView({ behavior: 'smooth' });
-           }
-       }
-       
-       function updateSidebarCounts() {
-           const categoryCounts = {
-               'Epistemologia': 0,
-               'Filosofia da Mente': 0,
-               'Filosofia da Ciência': 0,
-               'Neurociência': 0,
-               'Inteligência Artificial': 0
-           };
-           
-           approvedArticles.forEach(article => {
-               if (categoryCounts.hasOwnProperty(article.category)) {
-                   categoryCounts[article.category]++;
-               }
-           });
-           
-           const epistemologiaCount = document.getElementById('epistemologia-count');
-           const filosofiaMenteCount = document.getElementById('filosofia-mente-count');
-           const filosofiaCienciaCount = document.getElementById('filosofia-ciencia-count');
-           const neurocienciaCount = document.getElementById('neurociencia-count');
-           const iaCount = document.getElementById('ia-count');
-           const totalCount = document.getElementById('total-articles-count');
-           
-           if (epistemologiaCount) epistemologiaCount.textContent = categoryCounts['Epistemologia'];
-           if (filosofiaMenteCount) filosofiaMenteCount.textContent = categoryCounts['Filosofia da Mente'];
-           if (filosofiaCienciaCount) filosofiaCienciaCount.textContent = categoryCounts['Filosofia da Ciência'];
-           if (neurocienciaCount) neurocienciaCount.textContent = categoryCounts['Neurociência'];
-           if (iaCount) iaCount.textContent = categoryCounts['Inteligência Artificial'];
-           if (totalCount) totalCount.textContent = approvedArticles.length;
-           
-           const recentPostsList = document.getElementById('recent-posts-list');
-           if (recentPostsList && approvedArticles.length > 0) {
-               recentPostsList.innerHTML = '';
-               approvedArticles.slice(0, 5).forEach(article => {
-                   const li = document.createElement('li');
-                   li.innerHTML = `<a href="#article${article.id}" onclick="scrollToArticle('article${article.id}')">${article.title}</a>`;
-                   recentPostsList.appendChild(li);
-               });
-           }
-       }
-       
-       function filterByCategory(category) {
-           const articles = document.querySelectorAll('.article');
-           
-           articles.forEach(article => {
-               const articleCategory = article.querySelector('.article-category').textContent;
-               
-               if (articleCategory === category) {
-                   article.classList.remove('filtered-out');
-               } else {
-                   article.classList.add('filtered-out');
-               }
-           });
-           
-           const categoryLinks = document.querySelectorAll('.categories a');
-           categoryLinks.forEach(link => {
-               if (link.textContent.includes(category)) {
-                   link.classList.add('category-highlight');
-               } else {
-                   link.classList.remove('category-highlight');
-               }
-           });
-       }
-       
-       function showAllArticles() {
-           const articles = document.querySelectorAll('.article');
-           articles.forEach(article => {
-               article.classList.remove('filtered-out');
-           });
-           
-           const categoryLinks = document.querySelectorAll('.categories a');
-           categoryLinks.forEach(link => {
-               link.classList.remove('category-highlight');
-           });
-       }
-       
-       // FUNÇÕES DE MODAL
-       function openCreateModal() {
-           const modal = document.getElementById('createModal');
-           modal.style.display = 'block';
-       }
-       
-       function closeCreateModal() {
-           const modal = document.getElementById('createModal');
-           modal.style.display = 'none';
-       }
-       
-       // FUNÇÃO PARA MOSTRAR NOTIFICAÇÕES
-       function showNotification(message, type = 'info') {
-           const notification = document.getElementById('notification');
-           
-           notification.textContent = message;
-           notification.className = 'notification show';
-           
-           switch (type) {
-               case 'success':
-                   notification.style.background = '#27ae60';
-                   break;
-               case 'error':
-                   notification.style.background = '#e74c3c';
-                   break;
-               case 'info':
-               default:
-                   notification.style.background = '#3498db';
-                   break;
-           }
-           
-           setTimeout(() => {
-               notification.classList.remove('show');
-           }, 4000);
-       }
-       
-       // CORREÇÃO: Event listeners otimizados
-       window.addEventListener('click', function(event) {
-           const modals = document.querySelectorAll('.modal, .preview-modal');
-           modals.forEach(modal => {
-               if (event.target === modal) {
-                   modal.style.display = 'none';
-                   if (modal.id === 'previewModal') {
-                       currentPreviewSubmission = null;
-                   }
-               }
-           });
-       });
-       
-       document.addEventListener('keydown', function(event) {
-           if (event.key === 'Escape') {
-               const openModals = document.querySelectorAll('.modal[style*="block"], .preview-modal[style*="block"]');
-               openModals.forEach(modal => {
-                   modal.style.display = 'none';
-                   if (modal.id === 'previewModal') {
-                       currentPreviewSubmission = null;
-                   }
-               });
-           }
-       });
-       
-       // LOG DE INICIALIZAÇÃO OTIMIZADO
-       console.log('🎉 Blog "Realidade Emergente" - VERSÃO OTIMIZADA carregado!');
-       console.log('📊 Correções implementadas:');
-       console.log('- ✅ Função parseMarkdown otimizada (sem regex complexa)');
-       console.log('- ✅ Auto-save reduzido para 2 minutos');
-       console.log('- ✅ Limite de dados (50 submissões, 20 artigos)');
-       console.log('- ✅ Renderização otimizada');
-       console.log('- ✅ Event listeners simplificados');
-       console.log('- ✅ Processamento de referências corrigido');
-       console.log('- ✅ Sistema de aprovação funcional');
-       console.log('- ✅ Sem vazamentos de memória');
-       console.log('📈 Sistema 100% operacional sem estouro de memória!');
-   </script>
-</body>
-</html>
+        function renderAllArticles() {
+            const container = document.getElementById('articles-container');
+            container.innerHTML = '';
+
+            if (approvedArticles.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #7f8c8d; padding: 40px; font-style: italic;">
+                        <h4 style="color: #34495e; margin-bottom: 15px;">Nenhum artigo publicado ainda</h4>
+                        <p>Submeta seu artigo ou ideia de pesquisa para começar a construir nosso banco de conhecimento colaborativo!</p>
+                    </div>
+                `;
+            } else {
+                approvedArticles.forEach(article => {
+                    const articleHtml = createArticleHTML(article);
+                    container.insertAdjacentHTML('beforeend', articleHtml);
+                });
+            }
+
+            updateSidebarCounts();
+            console.log('📰 Artigos renderizados:', approvedArticles.length);
+        }
+
+        function createArticleHTML(article) {
+            const processedContent = parseMarkdown(article.content, true);
+            const safeTitle = sanitizeHTML(article.title);
+            const safeAuthor = sanitizeHTML(article.author);
+            const safeCategory = sanitizeHTML(article.category);
+            const safeReadTime = sanitizeHTML(article.readTime);
+            const safeAbstract = article.abstract ? sanitizeHTML(article.abstract) : '';
+
+            return `
+                <article class="article" id="article${article.id}">
+                    <div class="article-meta">
+                        <span class="article-author">${safeAuthor}</span>
+                        <span class="article-category">${safeCategory}</span>
+                        <span class="article-time">${safeReadTime}</span>
+                    </div>
+                    <h2
